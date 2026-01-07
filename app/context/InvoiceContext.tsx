@@ -36,7 +36,7 @@ export interface Invoice {
   accountId?: string;
 }
 
-interface Settings {
+export interface Settings {
   businessName: string;
   businessLogo: string;
   defaultVAT: number;
@@ -264,7 +264,7 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateAccount = (id: string, accountData: Partial<AccountDetails>) => {
-    let updatedAccounts = settings.accounts.map(acc => {
+    const updatedAccounts = settings.accounts.map(acc => {
       if (acc.id === id) {
         const updated = { ...acc, ...accountData };
         // If setting as default, unset others

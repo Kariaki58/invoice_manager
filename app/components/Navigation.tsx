@@ -2,12 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, FileText, Plus, Settings, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { Home, FileText, Plus, Settings } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 
 export default function Navigation() {
   const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
     { href: '/', label: 'Dashboard', icon: Home },
@@ -26,8 +25,8 @@ export default function Navigation() {
   return (
     <>
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 md:hidden shadow-lg">
-        <div className="flex justify-around items-center h-16 safe-area-bottom">
+      <nav className="fixed bottom-0 left-0 right-0 bg-card/80 backdrop-blur-lg border-t border-border z-40 md:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.4)]">
+        <div className="flex justify-around items-center h-16 safe-area-bottom px-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
@@ -35,46 +34,64 @@ export default function Navigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+                className={`flex flex-col items-center justify-center flex-1 h-full transition-all duration-300 relative ${
                   active
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-600 hover:text-blue-600'
+                    ? 'text-primary'
+                    : 'text-gray-400 hover:text-primary'
                 }`}
-                onClick={() => setMobileMenuOpen(false)}
               >
-                <Icon className="w-6 h-6 mb-1" />
-                <span className="text-xs font-medium">{item.label}</span>
+                {active && (
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 bg-primary rounded-b-full shadow-[0_0_10px_#8b5cf6]" />
+                )}
+                <Icon className={`w-6 h-6 mb-1 ${active ? 'scale-110' : ''}`} />
+                <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? 'opacity-100' : 'opacity-70'}`}>
+                  {item.label}
+                </span>
               </Link>
             );
           })}
+          <div className="flex items-center px-4">
+            <ThemeToggle />
+          </div>
         </div>
       </nav>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:flex-col md:w-20 md:fixed md:inset-y-0 md:left-0 md:bg-white md:border-r md:border-gray-200 md:z-40">
-        <div className="flex flex-col items-center py-6 space-y-8">
-          <div className="text-2xl font-bold text-blue-600">IN</div>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`p-3 rounded-lg transition-all ${
-                  active
-                    ? 'bg-blue-600 text-white shadow-lg transform scale-110'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'
-                }`}
-                title={item.label}
-              >
-                <Icon className="w-6 h-6" />
-              </Link>
-            );
-          })}
+      <aside className="hidden md:flex md:flex-col md:w-20 md:fixed md:inset-y-0 md:left-0 md:bg-card md:border-r md:border-border md:z-40 shadow-2xl">
+        <div className="flex flex-col items-center py-8 space-y-10 h-full">
+          <div className="text-2xl font-black bg-linear-to-br from-primary to-purple-400 bg-clip-text text-transparent transform hover:scale-110 transition-transform cursor-default">
+            IN
+          </div>
+          <div className="flex flex-col items-center space-y-6 flex-1 w-full">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`p-3 rounded-2xl transition-all duration-300 group relative ${
+                    active
+                      ? 'bg-primary text-white shadow-lg shadow-primary/40 transform scale-110'
+                      : 'text-gray-400 hover:bg-primary/10 hover:text-primary'
+                  }`}
+                  title={item.label}
+                >
+                  <Icon className="w-6 h-6" />
+                  {!active && (
+                    <span className="absolute left-20 bg-card border border-border text-foreground text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none shadow-xl">
+                      {item.label}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+          <div className="pb-4">
+            <ThemeToggle />
+          </div>
         </div>
       </aside>
     </>
   );
 }
-

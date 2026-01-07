@@ -1,16 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { useInvoices } from '../context/InvoiceContext';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { CheckCircle, XCircle, Clock, Search, Filter, Eye } from 'lucide-react';
+import { Clock, Search, Eye } from 'lucide-react';
+import { useInvoices, Invoice } from '../context/InvoiceContext';
 
 export default function InvoiceList() {
   const { invoices, updateInvoiceStatus } = useInvoices();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'unpaid' | 'overdue'>('all');
   const [clientFilter, setClientFilter] = useState('');
+
+  const handleStatusChange = (id: string, newStatus: Invoice['status']) => {
+    updateInvoiceStatus(id, newStatus);
+  };
 
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -20,60 +24,34 @@ export default function InvoiceList() {
     return matchesSearch && matchesStatus && matchesClient;
   });
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
-      case 'overdue':
-        return <XCircle className="w-5 h-5 text-red-600" />;
-      default:
-        return <Clock className="w-5 h-5 text-yellow-600" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'overdue':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    }
-  };
-
-  const handleStatusChange = (id: string, newStatus: 'paid' | 'unpaid' | 'overdue') => {
-    updateInvoiceStatus(id, newStatus);
-  };
-
   const uniqueClients = Array.from(new Set(invoices.map(inv => inv.clientName)));
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8 transition-colors">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Invoices</h1>
-          <p className="text-gray-600">Manage and track all your invoices</p>
+        <div className="mb-10">
+          <h1 className="text-4xl font-black text-foreground mb-2 tracking-tight">Invoices</h1>
+          <p className="text-muted-foreground font-medium">Manage and track your business revenue</p>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-200 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-card rounded-3xl p-6 shadow-2xl border border-border mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 pointer-events-none" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search invoices..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-foreground font-medium"
               />
             </div>
             <div>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => setStatusFilter(e.target.value as Invoice['status'] | 'all')}
+                className="w-full px-5 py-3 bg-background border border-border rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-foreground font-bold appearance-none cursor-pointer"
               >
                 <option value="all">All Status</option>
                 <option value="paid">Paid</option>
@@ -85,7 +63,7 @@ export default function InvoiceList() {
               <select
                 value={clientFilter}
                 onChange={(e) => setClientFilter(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-5 py-3 bg-background border border-border rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-foreground font-bold appearance-none cursor-pointer"
               >
                 <option value="">All Clients</option>
                 {uniqueClients.map(client => (
@@ -97,86 +75,92 @@ export default function InvoiceList() {
         </div>
 
         {/* Invoice Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-3xl shadow-2xl border border-border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Invoice #
+              <thead>
+                <tr className="bg-background/50 border-b border-border">
+                  <th className="px-8 py-5 text-left text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
+                    Invoice Info
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-8 py-5 text-left text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                     Client
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-8 py-5 text-left text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                     Amount
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-8 py-5 text-left text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                     Due Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-8 py-5 text-left text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-8 py-5 text-left text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-border">
                 {filteredInvoices.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                      <p className="text-lg mb-2">No invoices found</p>
-                      <p className="text-sm">Try adjusting your filters or create a new invoice</p>
+                    <td colSpan={6} className="px-8 py-20 text-center text-muted-foreground">
+                      <div className="w-20 h-20 bg-muted/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Search className="w-10 h-10 opacity-20" />
+                      </div>
+                      <p className="text-xl font-black text-foreground mb-2">No invoices found</p>
+                      <p className="font-medium">Try adjusting your filters or create a new invoice</p>
                     </td>
                   </tr>
                 ) : (
                   filteredInvoices.map((invoice) => (
-                    <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">
+                    <tr key={invoice.id} className="hover:bg-primary/5 transition-colors group">
+                      <td className="px-8 py-6 whitespace-nowrap">
+                        <div className="text-sm font-black text-foreground group-hover:text-primary transition-colors">
                           {invoice.invoiceNumber}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 mt-1">
+                          <Clock className="w-3 h-3" />
                           {format(new Date(invoice.createdAt), 'MMM dd, yyyy')}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900">
+                      <td className="px-8 py-6">
+                        <div className="text-sm font-black text-foreground">
                           {invoice.clientName}
                         </div>
-                        <div className="text-sm text-gray-500">{invoice.clientEmail}</div>
+                        <div className="text-xs font-medium text-muted-foreground">{invoice.clientEmail}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">
+                      <td className="px-8 py-6 whitespace-nowrap uppercase tracking-tighter">
+                        <div className="text-lg font-black text-foreground">
                           ₦{invoice.total.toLocaleString()}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
+                      <td className="px-8 py-6 whitespace-nowrap">
+                        <div className="text-sm font-bold text-foreground">
                           {format(new Date(invoice.dueDate), 'MMM dd, yyyy')}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <select
-                            value={invoice.status}
-                            onChange={(e) => handleStatusChange(invoice.id, e.target.value as any)}
-                            className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(invoice.status)} focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer`}
-                          >
-                            <option value="paid">Paid</option>
-                            <option value="unpaid">Unpaid</option>
-                            <option value="overdue">Overdue</option>
-                          </select>
-                        </div>
+                      <td className="px-8 py-6 whitespace-nowrap">
+                        <select
+                          value={invoice.status}
+                          onChange={(e) => handleStatusChange(invoice.id, e.target.value as Invoice['status'])}
+                          className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all cursor-pointer focus:ring-2 focus:ring-primary/20 bg-background ${
+                            invoice.status === 'paid' ? 'border-green-500/30 text-green-500 bg-green-500/10' :
+                            invoice.status === 'overdue' ? 'border-red-500/30 text-red-500 bg-red-500/10' :
+                            'border-yellow-500/30 text-yellow-500 bg-yellow-500/10'
+                          }`}
+                        >
+                          <option value="paid">Paid</option>
+                          <option value="unpaid">Unpaid</option>
+                          <option value="overdue">Overdue</option>
+                        </select>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-8 py-6 whitespace-nowrap">
                         <Link
                           href={`/invoice/${invoice.id}`}
-                          className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all transform hover:scale-105"
                         >
                           <Eye className="w-4 h-4" />
-                          View
+                          Details
                         </Link>
                       </td>
                     </tr>
@@ -188,20 +172,20 @@ export default function InvoiceList() {
         </div>
 
         {/* Summary Stats */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">Total Invoices</div>
-            <div className="text-2xl font-bold text-gray-900">{filteredInvoices.length}</div>
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-card rounded-3xl p-6 shadow-xl border border-border">
+            <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Total Managed</div>
+            <div className="text-3xl font-black text-foreground tracking-tighter">{filteredInvoices.length}</div>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">Total Amount</div>
-            <div className="text-2xl font-bold text-gray-900">
+          <div className="bg-card rounded-3xl p-6 shadow-xl border border-border">
+            <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Portfolio Value</div>
+            <div className="text-3xl font-black text-foreground tracking-tighter">
               ₦{filteredInvoices.reduce((sum, inv) => sum + inv.total, 0).toLocaleString()}
             </div>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">Unpaid Amount</div>
-            <div className="text-2xl font-bold text-yellow-600">
+          <div className="bg-card rounded-3xl p-6 shadow-xl border border-border flex flex-col justify-between">
+            <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Pending Collection</div>
+            <div className="text-3xl font-black text-yellow-500 tracking-tighter">
               ₦{filteredInvoices
                 .filter(inv => inv.status === 'unpaid' || inv.status === 'overdue')
                 .reduce((sum, inv) => sum + inv.total, 0)

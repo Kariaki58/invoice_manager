@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useInvoices, AccountDetails } from '../context/InvoiceContext';
+import { useInvoices, AccountDetails, Settings as SettingsType } from '../context/InvoiceContext';
 import { Upload, Save, CreditCard, Building2, Plus, Trash2, Edit2, Check, X, Wallet } from 'lucide-react';
 
 export default function Settings() {
   const { settings, updateSettings, addAccount, updateAccount, deleteAccount, setDefaultAccount } = useInvoices();
-  const [formData, setFormData] = useState(settings);
+  const [formData, setFormData] = useState<SettingsType>(settings);
   const [saved, setSaved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showAddAccount, setShowAddAccount] = useState(false);
@@ -19,18 +19,22 @@ export default function Settings() {
     isDefault: false,
   });
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = <K extends keyof SettingsType>(field: K, value: SettingsType[K]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleNestedChange = (parent: string, field: string, value: any) => {
+  const handleNestedChange = <K extends keyof SettingsType['paymentIntegration']>(
+    parent: 'paymentIntegration',
+    field: K,
+    value: SettingsType['paymentIntegration'][K]
+  ) => {
     setFormData(prev => ({
       ...prev,
       [parent]: {
-        ...(prev[parent as keyof typeof prev] as any),
+        ...prev[parent],
         [field]: value,
       },
     }));
@@ -126,48 +130,61 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8 transition-colors pb-24">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
-          <p className="text-gray-600">Manage your business profile and preferences</p>
+        <div className="mb-12">
+          <h1 className="text-4xl font-black text-foreground mb-3 tracking-tighter">Settings</h1>
+          <p className="text-muted-foreground font-medium">Manage your business profile and global preferences</p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-12">
           {/* Business Profile */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center gap-3 mb-6">
-              <Building2 className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900">Business Profile</h2>
+          <div className="bg-card rounded-[2.5rem] p-8 md:p-12 shadow-2xl border border-border relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
+            <div className="flex items-center gap-4 mb-8">
+              <div className="p-3 bg-primary/10 rounded-2xl">
+                <Building2 className="w-6 h-6 text-primary" />
+              </div>
+              <h2 className="text-2xl font-black text-foreground tracking-tight">Business Profile</h2>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Business Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.businessName}
-                  onChange={(e) => handleInputChange('businessName', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Your Business Name"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3 block">
+                    Business Entity Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.businessName}
+                    onChange={(e) => handleInputChange('businessName', e.target.value)}
+                    className="w-full px-5 py-4 bg-muted/5 border border-border rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-bold text-foreground placeholder:opacity-50"
+                    placeholder="Enter business name"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Business Logo
+              <div className="space-y-6">
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3 block">
+                  Brand Identity (Logo)
                 </label>
-                <div className="flex items-center gap-4">
-                  {formData.businessLogo && (
-                    <img
-                      src={formData.businessLogo}
-                      alt="Business Logo"
-                      className="w-20 h-20 object-contain rounded-lg border border-gray-200"
-                    />
-                  )}
-                  <div>
+                <div className="flex items-center gap-6">
+                  <div className="relative group/logo">
+                    {formData.businessLogo ? (
+                      <div className="w-24 h-24 rounded-2xl border border-border overflow-hidden bg-white/5 p-2">
+                        <img
+                          src={formData.businessLogo}
+                          alt="Business Logo"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-border flex items-center justify-center bg-muted/5 group-hover/logo:border-primary/50 transition-colors">
+                        <Building2 className="w-8 h-8 text-muted-foreground/30" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -178,81 +195,101 @@ export default function Settings() {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                      className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20"
                     >
                       <Upload className="w-4 h-4" />
-                      {formData.businessLogo ? 'Change Logo' : 'Upload Logo'}
+                      {formData.businessLogo ? 'Change Brand Logo' : 'Set Brand Logo'}
                     </button>
+                    <p className="text-[10px] text-muted-foreground mt-3 font-medium uppercase tracking-wider opacity-60">
+                      Recommended: High-res square logo (Max 2MB)
+                    </p>
                   </div>
                 </div>
-                <p className="text-sm text-gray-500 mt-2">
-                  Recommended: Square logo, PNG or JPG, max 2MB
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            {/* Tax Settings */}
+            <div className="bg-card rounded-[2.5rem] p-8 md:p-10 shadow-2xl border border-border">
+              <h2 className="text-xl font-black text-foreground mb-8 tracking-tight flex items-center gap-3">
+                <Check className="w-5 h-5 text-primary" /> Tax Engine
+              </h2>
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2 block">
+                    Default VAT (%)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={formData.defaultVAT}
+                      onChange={(e) => handleInputChange('defaultVAT', parseFloat(e.target.value) || 0)}
+                      className="w-full px-5 py-4 bg-muted/5 border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-black text-lg text-foreground"
+                      min="0"
+                      step="0.1"
+                    />
+                    <span className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground font-black opacity-50">%</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-2 font-bold uppercase tracking-wider opacity-60">National Standard: 7.5%</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2 block">
+                    Default Withholding Tax (%)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={formData.defaultWithholdingTax}
+                      onChange={(e) => handleInputChange('defaultWithholdingTax', parseFloat(e.target.value) || 0)}
+                      className="w-full px-5 py-4 bg-muted/5 border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-black text-lg text-foreground"
+                      min="0"
+                      step="0.1"
+                    />
+                    <span className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground font-black opacity-50">%</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-2 font-bold uppercase tracking-wider opacity-60">Standard Rate: 5%</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Currency */}
+            <div className="bg-card rounded-[2.5rem] p-8 md:p-10 shadow-2xl border border-border">
+              <h2 className="text-xl font-black text-foreground mb-8 tracking-tight flex items-center gap-3">
+                <Wallet className="w-5 h-5 text-primary" /> Global Currency
+              </h2>
+              <div>
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3 block">
+                  Reporting & Invoice Currency
+                </label>
+                <select
+                  value={formData.currency}
+                  onChange={(e) => handleInputChange('currency', e.target.value)}
+                  className="w-full px-5 py-4 bg-muted/5 border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-black text-foreground appearance-none ring-offset-background"
+                >
+                  <option value="NGN">₦ Naira (NGN)</option>
+                  <option value="USD">$ US Dollar (USD)</option>
+                  <option value="GBP">£ British Pound (GBP)</option>
+                  <option value="EUR">€ Euro (EUR)</option>
+                </select>
+                <p className="text-[10px] text-muted-foreground mt-4 font-bold uppercase tracking-wider leading-relaxed opacity-60">
+                  This will be the base currency for all calculations and summaries.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Tax Settings */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Tax Settings</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Default VAT (%)
-                </label>
-                <input
-                  type="number"
-                  value={formData.defaultVAT}
-                  onChange={(e) => handleInputChange('defaultVAT', parseFloat(e.target.value) || 0)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  min="0"
-                  step="0.1"
-                />
-                <p className="text-sm text-gray-500 mt-1">Standard VAT rate in Nigeria: 7.5%</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Default Withholding Tax (%)
-                </label>
-                <input
-                  type="number"
-                  value={formData.defaultWithholdingTax}
-                  onChange={(e) => handleInputChange('defaultWithholdingTax', parseFloat(e.target.value) || 0)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  min="0"
-                  step="0.1"
-                />
-                <p className="text-sm text-gray-500 mt-1">Common rate: 5%</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Currency */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Currency</h2>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Default Currency
-              </label>
-              <select
-                value={formData.currency}
-                onChange={(e) => handleInputChange('currency', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="NGN">₦ Nigerian Naira (NGN)</option>
-                <option value="USD">$ US Dollar (USD)</option>
-                <option value="GBP">£ British Pound (GBP)</option>
-                <option value="EUR">€ Euro (EUR)</option>
-              </select>
-            </div>
-          </div>
-
           {/* Account Details */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <Wallet className="w-6 h-6 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-900">Bank Account Details</h2>
+          <div className="bg-card rounded-[2.5rem] p-8 md:p-12 shadow-2xl border border-border">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-2xl">
+                  <Wallet className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-foreground tracking-tight">Bank Accounts</h2>
+                  <p className="text-muted-foreground text-sm font-medium">Add payment destinations for bank transfers</p>
+                </div>
               </div>
               <button
                 onClick={() => {
@@ -266,248 +303,216 @@ export default function Settings() {
                     isDefault: false,
                   });
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="flex items-center justify-center gap-2 px-8 py-4 bg-primary text-white rounded-2xl font-black hover:bg-primary/90 transition-all shadow-xl shadow-primary/25 transform hover:scale-105 active:scale-95 text-sm uppercase tracking-widest"
               >
-                <Plus className="w-4 h-4" />
-                Add Account
+                <Plus className="w-5 h-5" />
+                New Account
               </button>
             </div>
 
             {showAddAccount && (
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h3 className="font-semibold text-gray-900 mb-4">Add New Account</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="mb-10 p-8 bg-muted/5 rounded-3xl border border-dashed border-primary/30 animate-in fade-in slide-in-from-top-4 duration-500">
+                <h3 className="text-lg font-black text-foreground mb-6 flex items-center gap-2 uppercase tracking-tighter">
+                  Add Source Account
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Account Name *
-                    </label>
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2 block">Account Name *</label>
                     <input
                       type="text"
                       value={accountForm.accountName || ''}
                       onChange={(e) => setAccountForm({ ...accountForm, accountName: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="John Doe"
+                      className="w-full px-5 py-3.5 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary font-bold"
+                      placeholder="e.g. John Doe Enterprises"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Bank Name *
-                    </label>
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2 block">Bank Provider *</label>
                     <input
                       type="text"
                       value={accountForm.bankName || ''}
                       onChange={(e) => setAccountForm({ ...accountForm, bankName: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Access Bank"
+                      className="w-full px-5 py-3.5 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary font-bold"
+                      placeholder="e.g. GTBank"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Account Number *
-                    </label>
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2 block">Account Number *</label>
                     <input
                       type="text"
                       value={accountForm.accountNumber || ''}
                       onChange={(e) => setAccountForm({ ...accountForm, accountNumber: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-5 py-3.5 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary font-black font-mono tracking-tighter text-lg"
                       placeholder="0123456789"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Account Type
-                    </label>
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2 block">Account Type</label>
                     <select
                       value={accountForm.accountType || 'Current'}
                       onChange={(e) => setAccountForm({ ...accountForm, accountType: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-5 py-3.5 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary font-bold"
                     >
                       <option value="Current">Current</option>
                       <option value="Savings">Savings</option>
                     </select>
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="setDefault"
-                    checked={accountForm.isDefault || false}
-                    onChange={(e) => setAccountForm({ ...accountForm, isDefault: e.target.checked })}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <label htmlFor="setDefault" className="text-sm text-gray-700">
-                    Set as default account
-                  </label>
+                <div className="mt-6 flex items-center gap-3">
+                  <div 
+                    className={`group flex items-center gap-3 cursor-pointer select-none px-4 py-2 border rounded-full transition-all ${
+                      accountForm.isDefault ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-muted/5 border-border text-muted-foreground hover:bg-muted/10'
+                    }`}
+                    onClick={() => setAccountForm({ ...accountForm, isDefault: !accountForm.isDefault })}
+                  >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                      accountForm.isDefault ? 'bg-primary border-primary scale-110' : 'border-muted-foreground/30'
+                    }`}>
+                      {accountForm.isDefault && <Check className="w-3 h-3 text-white" />}
+                    </div>
+                    <span className="text-xs font-black uppercase tracking-widest">Set as Primary Settlement Account</span>
+                  </div>
                 </div>
-                <div className="mt-4 flex gap-2">
+                <div className="mt-8 flex gap-3">
                   <button
                     onClick={handleAddAccount}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                    className="flex items-center gap-2 px-8 py-3 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
                   >
-                    <Check className="w-4 h-4" />
-                    Save Account
+                    <Save className="w-4 h-4" /> Save Account
                   </button>
                   <button
-                    onClick={() => {
-                      setShowAddAccount(false);
-                      setAccountForm({
-                        accountName: '',
-                        bankName: '',
-                        accountNumber: '',
-                        accountType: 'Current',
-                        isDefault: false,
-                      });
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                    onClick={() => setShowAddAccount(false)}
+                    className="flex items-center gap-2 px-8 py-3 bg-muted/10 text-muted-foreground rounded-xl font-black text-xs uppercase tracking-widest hover:bg-muted/20 transition-all"
                   >
-                    <X className="w-4 h-4" />
-                    Cancel
+                    <X className="w-4 h-4" /> Discard
                   </button>
                 </div>
               </div>
             )}
 
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-4">
               {formData.accounts && formData.accounts.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No accounts added yet. Add your first account above.</p>
+                <div className="text-center py-16 px-4 bg-muted/5 rounded-4xl border border-dashed border-border group hover:border-primary/30 transition-colors">
+                  <Wallet className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4 group-hover:scale-110 transition-transform" />
+                  <p className="text-muted-foreground font-bold text-lg mb-1">No payment channels active</p>
+                  <p className="text-muted-foreground/60 text-sm">Add bank accounts to receive payments via bank transfer.</p>
+                </div>
               ) : (
                 formData.accounts?.map((account) => (
                   <div
                     key={account.id}
-                    className={`p-4 rounded-lg border ${
+                    className={`relative p-8 rounded-4xl border transition-all duration-300 group/card ${
                       account.isDefault
-                        ? 'bg-blue-50 border-blue-200'
-                        : 'bg-gray-50 border-gray-200'
+                        ? 'bg-primary/3 border-primary/30 shadow-[0_0_30px_rgba(139,92,246,0.05)]'
+                        : 'bg-muted/5 border-border hover:border-primary/20 hover:bg-muted/10'
                     }`}
                   >
                     {editingAccount === account.id ? (
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Account Name *
-                            </label>
+                      <div className="space-y-6 animate-in fade-in duration-300">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                           <div>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2 block">Account Name</label>
                             <input
                               type="text"
                               value={accountForm.accountName || ''}
                               onChange={(e) => setAccountForm({ ...accountForm, accountName: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-5 py-3 bg-background border border-border rounded-xl font-bold"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Bank Name *
-                            </label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2 block">Bank Name</label>
                             <input
                               type="text"
                               value={accountForm.bankName || ''}
                               onChange={(e) => setAccountForm({ ...accountForm, bankName: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-5 py-3 bg-background border border-border rounded-xl font-bold"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Account Number *
-                            </label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2 block">Account No.</label>
                             <input
                               type="text"
                               value={accountForm.accountNumber || ''}
                               onChange={(e) => setAccountForm({ ...accountForm, accountNumber: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-5 py-3 bg-background border border-border rounded-xl font-black font-mono tracking-tighter text-lg"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Account Type
-                            </label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2 block">Type</label>
                             <select
                               value={accountForm.accountType || 'Current'}
                               onChange={(e) => setAccountForm({ ...accountForm, accountType: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-5 py-3 bg-background border border-border rounded-xl font-bold"
                             >
                               <option value="Current">Current</option>
                               <option value="Savings">Savings</option>
                             </select>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            id={`default-${account.id}`}
-                            checked={accountForm.isDefault || false}
-                            onChange={(e) => setAccountForm({ ...accountForm, isDefault: e.target.checked })}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <label htmlFor={`default-${account.id}`} className="text-sm text-gray-700">
-                            Set as default account
-                          </label>
-                        </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 pt-4">
                           <button
                             onClick={() => handleSaveAccount(account.id)}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                            className="flex items-center gap-2 px-6 py-2.5 bg-green-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-green-600 transition-all shadow-lg shadow-green-500/20"
                           >
-                            <Check className="w-4 h-4" />
-                            Save
+                            <Check className="w-3.5 h-3.5" /> Save Changes
                           </button>
                           <button
-                            onClick={() => {
-                              setEditingAccount(null);
-                              setAccountForm({
-                                accountName: '',
-                                bankName: '',
-                                accountNumber: '',
-                                accountType: 'Current',
-                                isDefault: false,
-                              });
-                            }}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
+                            onClick={() => setEditingAccount(null)}
+                            className="flex items-center gap-2 px-6 py-2.5 bg-muted/10 text-muted-foreground rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-muted/20 transition-all"
                           >
-                            <X className="w-4 h-4" />
-                            Cancel
+                            <X className="w-3.5 h-3.5" /> Cancel
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-gray-900">{account.accountName}</h3>
-                            {account.isDefault && (
-                              <span className="px-2 py-0.5 bg-blue-600 text-white text-xs font-medium rounded-full">
-                                Default
-                              </span>
-                            )}
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="flex items-start gap-4">
+                          <div className={`p-4 rounded-2xl transition-all ${account.isDefault ? 'bg-primary text-white' : 'bg-muted/10 text-muted-foreground'}`}>
+                            <CreditCard className="w-6 h-6" />
                           </div>
-                          <p className="text-sm text-gray-600">{account.bankName}</p>
-                          <p className="text-sm font-mono text-gray-700">{account.accountNumber}</p>
-                          {account.accountType && (
-                            <p className="text-xs text-gray-500 mt-1">{account.accountType} Account</p>
-                          )}
+                          <div>
+                            <div className="flex items-center gap-3 mb-1">
+                              <h3 className="text-xl font-black text-foreground tracking-tight">{account.accountName}</h3>
+                              {account.isDefault && (
+                                <span className="px-3 py-1 bg-primary text-white text-[9px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-primary/20">
+                                  Default Account
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-bold opacity-70">
+                              <p className="text-primary">{account.bankName}</p>
+                              <span className="w-1 h-1 rounded-full bg-border" />
+                              <p className="text-foreground border-b border-dashed border-foreground/30 font-mono tracking-tighter">{account.accountNumber}</p>
+                              <span className="w-1 h-1 rounded-full bg-border" />
+                              <p className="text-muted-foreground uppercase text-[10px] tracking-widest">{account.accountType}</p>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 opacity-0 group-hover/card:opacity-100 transition-all transform translate-x-4 group-hover/card:translate-x-0">
                           {!account.isDefault && (
                             <button
                               onClick={() => setDefaultAccount(account.id)}
-                              className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                              className="px-4 py-2 text-[10px] bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all font-black uppercase tracking-widest"
                             >
-                              Set Default
+                              Make Primary
                             </button>
                           )}
                           <button
                             onClick={() => handleEditAccount(account)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-3 text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-xl transition-all"
+                            title="Edit Account"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Edit2 className="w-4.5 h-4.5" />
                           </button>
-                          {formData.accounts && formData.accounts.length > 1 && (
+                          {formData.accounts && (formData.accounts.length > 1 || !account.isDefault) ? (
                             <button
                               onClick={() => handleDeleteAccount(account.id)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-3 text-muted-foreground hover:bg-red-500/10 hover:text-red-500 rounded-xl transition-all"
+                              title="Delete Account"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-4.5 h-4.5" />
                             </button>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     )}
@@ -518,78 +523,72 @@ export default function Settings() {
           </div>
 
           {/* Payment Integration */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center gap-3 mb-6">
-              <CreditCard className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900">Payment Integration</h2>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              Enable payment methods to allow clients to pay invoices directly. Integration setup will be available in the full version.
-            </p>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div>
-                  <h3 className="font-semibold text-gray-900">Paystack</h3>
-                  <p className="text-sm text-gray-600">Accept payments via Paystack</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.paymentIntegration.paystack}
-                    onChange={(e) => handleNestedChange('paymentIntegration', 'paystack', e.target.checked)}
-                    className="sr-only peer"
-                    disabled
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
+          <div className="bg-card rounded-[2.5rem] p-8 md:p-12 shadow-2xl border border-border">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="p-3 bg-primary/10 rounded-2xl">
+                <CreditCard className="w-6 h-6 text-primary" />
               </div>
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div>
-                  <h3 className="font-semibold text-gray-900">Flutterwave</h3>
-                  <p className="text-sm text-gray-600">Accept payments via Flutterwave</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.paymentIntegration.flutterwave}
-                    onChange={(e) => handleNestedChange('paymentIntegration', 'flutterwave', e.target.checked)}
-                    className="sr-only peer"
-                    disabled
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div>
-                  <h3 className="font-semibold text-gray-900">Bank Transfer</h3>
-                  <p className="text-sm text-gray-600">Manual bank transfer instructions</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.paymentIntegration.bankTransfer}
-                    onChange={(e) => handleNestedChange('paymentIntegration', 'bankTransfer', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
+              <div>
+                <h2 className="text-2xl font-black text-foreground tracking-tight">Payment Integration</h2>
+                <p className="text-muted-foreground text-sm font-medium">Connect external payment gateways</p>
               </div>
             </div>
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800">
-                💡 <strong>Note:</strong> Payment gateway integrations require API keys and backend setup. This is a UI prototype showing the integration options.
+            
+            <div className="grid grid-cols-1 gap-4">
+              {[
+                { id: 'paystack', name: 'Paystack', desc: 'Secure local & international payments', disabled: true },
+                { id: 'flutterwave', name: 'Flutterwave', desc: 'Global payment infrastructure', disabled: true },
+                { id: 'bankTransfer', name: 'Bank Transfer', desc: 'Direct manual bank settlement', disabled: false }
+              ].map((gateway) => (
+                <div key={gateway.id} className="flex items-center justify-between p-6 bg-muted/5 rounded-3xl border border-border hover:border-primary/30 transition-all group/integration">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-background border border-border flex items-center justify-center font-black text-xl text-primary/30 group-hover/integration:text-primary transition-colors">
+                      {gateway.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h3 className="font-black text-foreground tracking-tight">{gateway.name}</h3>
+                      <p className="text-xs text-muted-foreground font-medium">{gateway.desc}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {gateway.disabled && (
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em] px-2 py-1 bg-muted/20 text-muted-foreground/60 rounded-lg">Soon</span>
+                    )}
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.paymentIntegration[gateway.id as keyof typeof formData.paymentIntegration]}
+                        onChange={(e) => handleNestedChange('paymentIntegration', gateway.id as keyof SettingsType['paymentIntegration'], e.target.checked)}
+                        className="sr-only peer"
+                        disabled={gateway.disabled}
+                      />
+                      <div className="w-12 h-6.5 bg-muted/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary shadow-inner"></div>
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 p-6 bg-primary/5 rounded-4xl border border-primary/20 flex gap-4 items-start">
+              <div className="p-2 bg-primary/20 rounded-lg shrink-0">
+                <Plus className="w-4 h-4 text-primary" />
+              </div>
+              <p className="text-xs font-bold text-primary/80 leading-relaxed uppercase tracking-wider">
+                <strong>Deployment Note:</strong> Enterprise payment gateway integrations require active API keys and secure backend synchronization. This interface demonstrates the available settlement workflows.
               </p>
             </div>
           </div>
 
-          {/* Save Button */}
-          <div className="flex justify-end">
+          {/* Final Global Save Action */}
+          <div className="flex justify-start md:justify-end pt-12">
             <button
               onClick={handleSave}
-              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="group relative flex items-center gap-3 px-12 py-5 bg-green-500 text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-green-600 transition-all shadow-[0_20px_40px_rgba(34,197,94,0.3)] hover:shadow-[0_25px_50px_rgba(34,197,94,0.4)] transform hover:-translate-y-1 active:scale-95 overflow-hidden"
             >
-              <Save className="w-5 h-5" />
-              {saved ? 'Saved!' : 'Save Settings'}
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+              <div className="relative flex items-center gap-3">
+                {saved ? <Check className="w-5 h-5 animate-bounce" /> : <Save className="w-5 h-5 group-hover:rotate-12 transition-transform" />}
+                {saved ? 'Settings Synced!' : 'Sync All Settings'}
+              </div>
             </button>
           </div>
         </div>

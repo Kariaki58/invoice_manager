@@ -2,7 +2,7 @@
 
 import { useInvoices } from './context/InvoiceContext';
 import Link from 'next/link';
-import { Plus, TrendingUp, TrendingDown, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Clock, CheckCircle, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function Dashboard() {
@@ -22,40 +22,29 @@ export default function Dashboard() {
 
   const recentInvoices = invoices.slice(0, 5);
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'overdue':
-        return <XCircle className="w-4 h-4 text-red-600" />;
-      default:
-        return <Clock className="w-4 h-4 text-yellow-600" />;
-    }
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-500/10 text-green-500 border-green-500/20';
       case 'overdue':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-500/10 text-red-500 border-red-500/20';
       default:
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8 transition-colors">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-            <p className="text-gray-600">Welcome back! Here's your invoice overview.</p>
+            <h1 className="text-4xl font-black text-foreground mb-2 tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground font-medium">Welcome back! Here&apos;s your invoice overview.</p>
           </div>
           <Link
             href="/create"
-            className="mt-4 md:mt-0 inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="mt-6 md:mt-0 inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 hover:shadow-primary/40 transform hover:-translate-y-1 active:scale-95"
           >
             <Plus className="w-5 h-5" />
             Create Invoice
@@ -63,113 +52,143 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">Total Paid</h3>
-              <TrendingUp className="w-5 h-5 text-green-600" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div className="bg-card rounded-3xl p-8 shadow-2xl border border-border group hover:border-primary/50 transition-all duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Total Paid</h3>
+              <div className="p-2 bg-green-500/10 rounded-xl">
+                <TrendingUp className="w-5 h-5 text-green-500" />
+              </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">₦{totalPaid.toLocaleString()}</p>
-            <p className="text-sm text-gray-500 mt-2">
-              {invoices.filter(inv => inv.status === 'paid').length} invoices
+            <p className="text-4xl font-black text-foreground tracking-tighter mb-2">₦{totalPaid.toLocaleString()}</p>
+            <p className="text-sm font-bold text-green-500 flex items-center gap-1">
+              {invoices.filter(inv => inv.status === 'paid').length} payments received
             </p>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">Unpaid</h3>
-              <Clock className="w-5 h-5 text-yellow-600" />
+          <div className="bg-card rounded-3xl p-8 shadow-2xl border border-border group hover:border-primary/50 transition-all duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Unpaid</h3>
+              <div className="p-2 bg-yellow-500/10 rounded-xl">
+                <Clock className="w-5 h-5 text-yellow-500" />
+              </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">₦{totalUnpaid.toLocaleString()}</p>
-            <p className="text-sm text-gray-500 mt-2">
-              {invoices.filter(inv => inv.status === 'unpaid').length} invoices
+            <p className="text-4xl font-black text-foreground tracking-tighter mb-2">₦{totalUnpaid.toLocaleString()}</p>
+            <p className="text-sm font-bold text-yellow-500 flex items-center gap-1">
+              {invoices.filter(inv => inv.status === 'unpaid').length} pending invoices
             </p>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">Overdue</h3>
-              <TrendingDown className="w-5 h-5 text-red-600" />
+          <div className="bg-card rounded-3xl p-8 shadow-2xl border border-border group hover:border-primary/50 transition-all duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Overdue</h3>
+              <div className="p-2 bg-red-500/10 rounded-xl">
+                <TrendingDown className="w-5 h-5 text-red-500" />
+              </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">₦{totalOverdue.toLocaleString()}</p>
-            <p className="text-sm text-gray-500 mt-2">
-              {invoices.filter(inv => inv.status === 'overdue').length} invoices
+            <p className="text-4xl font-black text-foreground tracking-tighter mb-2">₦{totalOverdue.toLocaleString()}</p>
+            <p className="text-sm font-bold text-red-500 flex items-center gap-1">
+              {invoices.filter(inv => inv.status === 'overdue').length} overdue alerts
             </p>
           </div>
         </div>
 
         {/* Cash Flow Summary */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Cash Flow Summary</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Total Revenue</span>
-              <span className="text-2xl font-bold text-green-600">
-                ₦{(totalPaid + totalUnpaid + totalOverdue).toLocaleString()}
-              </span>
+        <div className="bg-card rounded-3xl p-8 shadow-2xl border border-border mb-10 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
+          <h2 className="text-xl font-black text-foreground mb-6 relative z-10">Cash Flow Summary</h2>
+          <div className="space-y-6 relative z-10">
+            <div className="flex items-end justify-between">
+              <div>
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">Total Revenue</span>
+                <span className="text-4xl font-black text-primary">
+                  ₦{(totalPaid + totalUnpaid + totalOverdue).toLocaleString()}
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">Efficiency</span>
+                <span className="text-xl font-bold text-foreground">
+                  {((totalPaid + totalUnpaid + totalOverdue) > 0 ? (totalPaid / (totalPaid + totalUnpaid + totalOverdue)) * 100 : 0).toFixed(1)}%
+                </span>
+              </div>
             </div>
-            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-4 bg-background rounded-full overflow-hidden border border-border">
               <div
-                className="h-full bg-green-600 transition-all duration-500"
+                className="h-full bg-linear-to-r from-primary to-purple-400 transition-all duration-1000 shadow-[0_0_15px_#8b5cf6]"
                 style={{
                   width: `${((totalPaid + totalUnpaid + totalOverdue) > 0 ? totalPaid / (totalPaid + totalUnpaid + totalOverdue) : 0) * 100}%`,
                 }}
               />
             </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-500">Paid: ₦{totalPaid.toLocaleString()}</span>
-              <span className="text-gray-500">
-                Pending: ₦{(totalUnpaid + totalOverdue).toLocaleString()}
-              </span>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-background/50 rounded-2xl border border-border">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Collected</span>
+                <span className="text-lg font-bold text-green-500">₦{totalPaid.toLocaleString()}</span>
+              </div>
+              <div className="p-4 bg-background/50 rounded-2xl border border-border">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Receivable</span>
+                <span className="text-lg font-bold text-primary">₦{(totalUnpaid + totalOverdue).toLocaleString()}</span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Recent Invoices */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Recent Invoices</h2>
-              <Link
-                href="/invoices"
-                className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-              >
-                View All
-              </Link>
-            </div>
+        <div className="bg-card rounded-3xl shadow-2xl border border-border mb-10 overflow-hidden">
+          <div className="p-8 border-b border-border flex items-center justify-between bg-background/30">
+            <h2 className="text-xl font-black text-foreground">Recent Activity</h2>
+            <Link
+              href="/invoices"
+              className="text-primary hover:text-primary/80 font-bold text-sm flex items-center gap-1 transition-colors"
+            >
+              View Analytics
+              <Plus className="w-4 h-4 rotate-45" />
+            </Link>
           </div>
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-border">
             {recentInvoices.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <p>No invoices yet. Create your first invoice to get started!</p>
+              <div className="p-12 text-center text-muted-foreground">
+                <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-8 h-8 opacity-20" />
+                </div>
+                <p className="font-bold">No active invoices</p>
+                <p className="text-sm">Generate your first professional invoice today.</p>
               </div>
             ) : (
               recentInvoices.map((invoice) => (
                 <Link
                   key={invoice.id}
                   href={`/invoice/${invoice.id}`}
-                  className="block p-6 hover:bg-gray-50 transition-colors"
+                  className="block p-8 hover:bg-primary/5 transition-all duration-300 group"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-gray-900">{invoice.invoiceNumber}</h3>
+                      <div className="flex items-center gap-4 mb-3">
+                        <h3 className="font-black text-lg text-foreground group-hover:text-primary transition-colors">
+                          {invoice.invoiceNumber}
+                        </h3>
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(
+                          className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${getStatusColor(
                             invoice.status
                           )}`}
                         >
-                          {getStatusIcon(invoice.status)}
-                          {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                          <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                          {invoice.status}
                         </span>
                       </div>
-                      <p className="text-gray-600 mb-1">{invoice.clientName}</p>
-                      <p className="text-sm text-gray-500">
-                        Due: {format(new Date(invoice.dueDate), 'MMM dd, yyyy')}
-                      </p>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground font-medium">
+                        <span className="flex items-center gap-1">
+                          <CheckCircle className="w-4 h-4" />
+                          {invoice.clientName}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          Due {format(new Date(invoice.dueDate), 'MMM dd')}
+                        </span>
+                      </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-gray-900">
+                      <p className="text-2xl font-black text-foreground group-hover:scale-105 transition-transform">
                         ₦{invoice.total.toLocaleString()}
                       </p>
                     </div>
