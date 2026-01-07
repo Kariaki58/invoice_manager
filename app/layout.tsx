@@ -35,6 +35,7 @@ import { InvoiceProvider } from './context/InvoiceContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Navigation from './components/Navigation';
 import ServiceWorkerRegistration from './components/ServiceWorkerRegistration';
+import PWAUpdatePrompt from './components/PWAUpdatePrompt';
 import InstallPrompt from './components/InstallPrompt';
 
 export default function RootLayout({
@@ -57,6 +58,7 @@ export default function RootLayout({
         <ThemeProvider>
           <InvoiceProvider>
             <ServiceWorkerRegistration />
+            <PWAUpdatePrompt />
             <InstallPrompt />
             <div className="flex min-h-screen bg-background transition-colors">
               <Navigation />
