@@ -46,6 +46,11 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
   padding-bottom: env(safe-area-inset-bottom);
+  overflow-x: hidden;
+}
+
+html {
+  overflow-x: hidden;
 }
 
 ::selection {

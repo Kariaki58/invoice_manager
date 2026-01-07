@@ -13,13 +13,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Invoice Manager - Nigeria",
+  title: "invoiceme - Professional Invoice Manager",
   description: "Professional invoice generator for Nigerian freelancers and businesses",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "InvoiceNG",
+    title: "invoiceme",
   },
 };
 
@@ -50,7 +50,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#7c3aed" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="InvoiceNG" />
+        <meta name="apple-mobile-web-app-title" content="invoiceme" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}

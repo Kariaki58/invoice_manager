@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, FileText, Plus, Settings as SettingsIcon } from 'lucide-react';
+import Logo from './Logo';
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -52,9 +53,9 @@ export default function Navigation() {
 
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex md:flex-col md:w-24 md:fixed md:inset-y-0 md:left-0 md:bg-card md:border-r md:border-border md:z-40 shadow-2xl">
-        <div className="flex flex-col items-center py-10 space-y-12 h-full">
-          <div className="text-2xl font-black bg-linear-to-br from-primary to-purple-400 bg-clip-text text-transparent transform hover:scale-110 transition-transform cursor-default select-none">
-            IN
+        <div className="flex flex-col items-center py-6 space-y-8 h-full">
+          <div className="px-2">
+            <Logo variant="compact" showText={false} />
           </div>
           <div className="flex flex-col items-center space-y-8 flex-1 w-full">
             {navItems.map((item) => {

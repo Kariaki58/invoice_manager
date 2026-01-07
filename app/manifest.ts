@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Invoice Manager - Nigeria',
-    short_name: 'InvoiceNG',
+    name: 'invoiceme - Professional Invoice Manager',
+    short_name: 'invoiceme',
     description: 'Professional invoice generator for Nigerian freelancers and businesses',
     start_url: '/',
     display: 'standalone',
