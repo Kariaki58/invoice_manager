@@ -99,8 +99,8 @@ export default function CreateInvoice() {
              <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
              <span className="font-black text-xs uppercase tracking-widest">Back</span>
           </button>
-          <h1 className="text-3xl md:text-4xl font-black text-foreground mb-2 tracking-tight">Create Invoice</h1>
-          <p className="text-muted-foreground font-medium text-sm md:text-base">Generate a professional invoice in seconds</p>
+          <h1 className="text-xl md:text-4xl font-black text-foreground mb-1 md:mb-2 tracking-tight">Create Invoice</h1>
+          <p className="text-muted-foreground font-medium text-xs md:text-base">Generate a professional invoice in seconds</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 md:space-y-10">
@@ -350,18 +350,19 @@ export default function CreateInvoice() {
                 <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Tax Withheld ({withholdingTax}%)</span>
                 <span className="font-black text-red-500">-₦{withholdingTaxAmount.toLocaleString()}</span>
               </div>
-              <div className="pt-6 mt-4 border-t border-border">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div className="pt-4 md:pt-6 mt-4 border-t border-border">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 md:gap-4">
                   <div>
-                    <span className="text-xs font-black text-primary uppercase tracking-widest block mb-1">Total Payable</span>
-                    <span className="text-4xl md:text-5xl font-black text-foreground tracking-tighter">₦{total.toLocaleString()}</span>
+                    <span className="text-[10px] md:text-xs font-black text-primary uppercase tracking-widest block mb-0.5 md:mb-1">Total Payable</span>
+                    <span className="text-2xl md:text-5xl font-black text-foreground tracking-tighter">₦{total.toLocaleString()}</span>
                   </div>
                   <button
                     type="submit"
-                    className="w-full md:w-auto px-10 py-5 bg-primary text-white rounded-2xl font-black text-base md:text-lg hover:bg-primary/90 transition-all shadow-2xl shadow-primary/40 active:scale-95 flex items-center justify-center gap-3"
+                    className="w-full md:w-auto px-4 py-2.5 md:px-10 md:py-5 bg-primary text-white rounded-xl md:rounded-2xl font-black text-xs md:text-lg hover:bg-primary/90 transition-all shadow-2xl shadow-primary/40 active:scale-95 flex items-center justify-center gap-2 md:gap-3"
                   >
-                    <Save className="w-6 h-6" />
-                    Generate Invoice
+                    <Save className="w-4 h-4 md:w-6 md:h-6" />
+                    <span className="hidden sm:inline">Generate Invoice</span>
+                    <span className="sm:hidden">Generate</span>
                   </button>
                 </div>
               </div>

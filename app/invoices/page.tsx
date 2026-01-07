@@ -36,40 +36,40 @@ export default function InvoiceList() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8 transition-colors pb-32 md:pb-8">
+    <div className="min-h-screen bg-background p-3 md:p-8 transition-colors pb-32 md:pb-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8 md:mb-12">
-          <div className="flex items-center justify-between gap-4 mb-2">
-            <h1 className="text-3xl md:text-4xl font-black text-foreground tracking-tight">Invoices</h1>
+        <div className="mb-4 md:mb-12">
+          <div className="flex items-center justify-between gap-3 md:gap-4 mb-1 md:mb-2">
+            <h1 className="text-xl md:text-4xl font-black text-foreground tracking-tight">Invoices</h1>
             <button 
               onClick={() => setShowFilters(!showFilters)}
-              className="md:hidden p-3 bg-card border border-border rounded-2xl text-muted-foreground hover:text-primary transition-colors"
+              className="md:hidden p-2 bg-card border border-border rounded-xl text-muted-foreground hover:text-primary transition-colors"
             >
-              <Filter className="w-6 h-6" />
+              <Filter className="w-4 h-4" />
             </button>
           </div>
-          <p className="text-muted-foreground font-medium text-sm md:text-base">Manage and track your business revenue</p>
+          <p className="text-muted-foreground font-medium text-xs md:text-base">Manage and track your business revenue</p>
         </div>
 
         {/* Filters - Collapsible on Mobile */}
-        <div className={`${showFilters ? 'block' : 'hidden md:block'} mb-8 animate-in fade-in slide-in-from-top-4 duration-300`}>
-          <div className="bg-card rounded-3xl p-6 shadow-2xl border border-border">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={`${showFilters ? 'block' : 'hidden md:block'} mb-4 md:mb-8 animate-in fade-in slide-in-from-top-4 duration-300`}>
+          <div className="bg-card rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-2xl border border-border">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 pointer-events-none" />
+                <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 md:w-5 md:h-5 pointer-events-none" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search invoices..."
-                  className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-foreground font-medium"
+                  className="w-full pl-9 md:pl-12 pr-3 md:pr-4 py-2 md:py-3 bg-background border border-border rounded-xl md:rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-foreground font-medium text-sm md:text-base"
                 />
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-1 gap-2 md:gap-4">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value as Invoice['status'] | 'all')}
-                  className="w-full px-5 py-3 bg-background border border-border rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-foreground font-bold appearance-none cursor-pointer"
+                  className="w-full px-3 md:px-5 py-2 md:py-3 bg-background border border-border rounded-xl md:rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-foreground font-bold text-sm md:text-base appearance-none cursor-pointer"
                 >
                   <option value="all">Status</option>
                   <option value="paid">Paid</option>
@@ -79,7 +79,7 @@ export default function InvoiceList() {
                 <select
                   value={clientFilter}
                   onChange={(e) => setClientFilter(e.target.value)}
-                  className="w-full px-5 py-3 bg-background border border-border rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-foreground font-bold appearance-none cursor-pointer"
+                  className="w-full px-3 md:px-5 py-2 md:py-3 bg-background border border-border rounded-xl md:rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-foreground font-bold text-sm md:text-base appearance-none cursor-pointer"
                 >
                   <option value="">Clients</option>
                   {uniqueClients.map(client => (
@@ -92,38 +92,38 @@ export default function InvoiceList() {
         </div>
 
         {/* Mobile View: Card List */}
-        <div className="md:hidden space-y-4">
+        <div className="md:hidden space-y-3">
           {filteredInvoices.length === 0 ? (
-            <div className="py-20 text-center bg-card rounded-3xl border border-border">
-               <Search className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
-               <p className="text-foreground font-black">No invoices found</p>
+            <div className="py-12 md:py-20 text-center bg-card rounded-2xl md:rounded-3xl border border-border">
+               <Search className="w-8 h-8 md:w-12 md:h-12 text-muted-foreground/20 mx-auto mb-3 md:mb-4" />
+               <p className="text-foreground font-black text-sm md:text-base">No invoices found</p>
             </div>
           ) : (
             filteredInvoices.map((invoice) => (
               <Link
                 key={invoice.id}
                 href={`/invoice/${invoice.id}`}
-                className="block bg-card rounded-4xl p-6 border border-border shadow-xl active:scale-[0.98] transition-all"
+                className="block bg-card rounded-2xl md:rounded-4xl p-4 md:p-6 border border-border shadow-xl active:scale-[0.98] transition-all"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{invoice.invoiceNumber}</span>
-                    <h3 className="text-lg font-black text-foreground tracking-tight mt-1">{invoice.clientName}</h3>
+                <div className="flex justify-between items-start mb-3 md:mb-4">
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest block">{invoice.invoiceNumber}</span>
+                    <h3 className="text-sm md:text-lg font-black text-foreground tracking-tight mt-0.5 md:mt-1 truncate">{invoice.clientName}</h3>
                   </div>
-                  <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${getStatusStyles(invoice.status)}`}>
+                  <div className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-widest flex-shrink-0 ml-2 ${getStatusStyles(invoice.status)}`}>
                     {invoice.status}
                   </div>
                 </div>
                 
-                <div className="flex justify-between items-end border-t border-border/50 pt-4">
-                  <div>
-                    <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> Due {format(new Date(invoice.dueDate), 'MMM dd')}
+                <div className="flex justify-between items-end border-t border-border/50 pt-3 md:pt-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5 md:mb-1 flex items-center gap-1">
+                      <Clock className="w-2.5 h-2.5 md:w-3 md:h-3" /> Due {format(new Date(invoice.dueDate), 'MMM dd')}
                     </div>
-                    <div className="text-xl font-black text-foreground tracking-tighter">₦{invoice.total.toLocaleString()}</div>
+                    <div className="text-lg md:text-xl font-black text-foreground tracking-tighter">₦{invoice.total.toLocaleString()}</div>
                   </div>
-                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                    <ChevronRight className="w-5 h-5" />
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-primary/10 rounded-lg md:rounded-xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors flex-shrink-0 ml-2">
+                    <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
                   </div>
                 </div>
               </Link>
@@ -191,20 +191,20 @@ export default function InvoiceList() {
         </div>
 
         {/* Global Stats - Adjusted for Mobile Spacing */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          <div className="bg-card rounded-4xl md:rounded-3xl p-6 shadow-xl border border-border">
-            <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 opacity-60">Total Managed</div>
-            <div className="text-3xl font-black text-foreground tracking-tighter">{filteredInvoices.length}</div>
+        <div className="mt-6 md:mt-8 grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
+          <div className="bg-card rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-xl border border-border">
+            <div className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5 md:mb-2 opacity-60">Total Managed</div>
+            <div className="text-2xl md:text-3xl font-black text-foreground tracking-tighter">{filteredInvoices.length}</div>
           </div>
-          <div className="bg-card rounded-4xl md:rounded-3xl p-6 shadow-xl border border-border">
-            <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 opacity-60">Portfolio Value</div>
-            <div className="text-3xl font-black text-foreground tracking-tighter">
+          <div className="bg-card rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-xl border border-border">
+            <div className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5 md:mb-2 opacity-60">Portfolio Value</div>
+            <div className="text-2xl md:text-3xl font-black text-foreground tracking-tighter">
               ₦{filteredInvoices.reduce((sum, inv) => sum + inv.total, 0).toLocaleString()}
             </div>
           </div>
-          <div className="bg-card rounded-4xl md:rounded-3xl p-6 shadow-xl border border-border">
-            <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 opacity-60">Pending Collection</div>
-            <div className="text-3xl font-black text-yellow-500 tracking-tighter">
+          <div className="bg-card rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-xl border border-border">
+            <div className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5 md:mb-2 opacity-60">Pending Collection</div>
+            <div className="text-2xl md:text-3xl font-black text-yellow-500 tracking-tighter">
               ₦{filteredInvoices
                 .filter(inv => inv.status === 'unpaid' || inv.status === 'overdue')
                 .reduce((sum, inv) => sum + inv.total, 0)

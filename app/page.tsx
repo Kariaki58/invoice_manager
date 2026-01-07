@@ -39,62 +39,63 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 md:mb-12">
           <div>
-            <h1 className="text-3xl md:text-5xl font-black text-foreground mb-2 tracking-tighter">Dashboard</h1>
-            <p className="text-muted-foreground font-medium text-sm md:text-base">Welcome back! Here&apos;s your invoice overview.</p>
+            <h1 className="text-xl md:text-5xl font-black text-foreground mb-1 md:mb-2 tracking-tighter">Dashboard</h1>
+            <p className="text-muted-foreground font-medium text-xs md:text-base">Welcome back! Here&apos;s your invoice overview.</p>
           </div>
           <Link
             href="/create"
-            className="mt-6 md:mt-0 inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-xl shadow-primary/25 hover:shadow-primary/40 transform hover:-translate-y-1 active:scale-95"
+            className="mt-4 md:mt-0 inline-flex items-center justify-center gap-1.5 md:gap-2 bg-primary text-primary-foreground px-4 py-2 md:px-8 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-xl shadow-primary/25 hover:shadow-primary/40 transform hover:-translate-y-1 active:scale-95"
           >
-            <Plus className="w-5 h-5" />
-            Create Invoice
+            <Plus className="w-3.5 h-3.5 md:w-5 md:h-5" />
+            <span className="hidden sm:inline">Create Invoice</span>
+            <span className="sm:hidden">Create</span>
           </Link>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
-          <div className="bg-card rounded-4xl p-6 md:p-8 shadow-2xl border border-border group hover:border-primary/50 transition-all duration-300">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Paid</h3>
-              <div className="p-2 bg-green-500/10 rounded-xl">
-                <TrendingUp className="w-5 h-5 text-green-500" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 mb-6 md:mb-12">
+          <div className="bg-card rounded-2xl md:rounded-4xl p-4 md:p-8 shadow-2xl border border-border group hover:border-primary/50 transition-all duration-300">
+            <div className="flex items-center justify-between mb-3 md:mb-6">
+              <h3 className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Paid</h3>
+              <div className="p-1.5 md:p-2 bg-green-500/10 rounded-lg md:rounded-xl">
+                <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
               </div>
             </div>
-            <p className="text-3xl md:text-4xl font-black text-foreground tracking-tighter mb-2">₦{totalPaid.toLocaleString()}</p>
-            <p className="text-xs font-bold text-green-500 flex items-center gap-1 uppercase tracking-wider">
+            <p className="text-2xl md:text-4xl font-black text-foreground tracking-tighter mb-1 md:mb-2">₦{totalPaid.toLocaleString()}</p>
+            <p className="text-[10px] md:text-xs font-bold text-green-500 flex items-center gap-1 uppercase tracking-wider">
               {invoices.filter(inv => inv.status === 'paid').length} payments
             </p>
           </div>
 
-          <div className="bg-card rounded-4xl p-6 md:p-8 shadow-2xl border border-border group hover:border-primary/50 transition-all duration-300">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Unpaid</h3>
-              <div className="p-2 bg-yellow-500/10 rounded-xl">
-                <Clock className="w-5 h-5 text-yellow-500" />
+          <div className="bg-card rounded-2xl md:rounded-4xl p-4 md:p-8 shadow-2xl border border-border group hover:border-primary/50 transition-all duration-300">
+            <div className="flex items-center justify-between mb-3 md:mb-6">
+              <h3 className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest">Unpaid</h3>
+              <div className="p-1.5 md:p-2 bg-yellow-500/10 rounded-lg md:rounded-xl">
+                <Clock className="w-4 h-4 md:w-5 md:h-5 text-yellow-500" />
               </div>
             </div>
-            <p className="text-3xl md:text-4xl font-black text-foreground tracking-tighter mb-2">₦{totalUnpaid.toLocaleString()}</p>
-            <p className="text-xs font-bold text-yellow-500 flex items-center gap-1 uppercase tracking-wider">
+            <p className="text-2xl md:text-4xl font-black text-foreground tracking-tighter mb-1 md:mb-2">₦{totalUnpaid.toLocaleString()}</p>
+            <p className="text-[10px] md:text-xs font-bold text-yellow-500 flex items-center gap-1 uppercase tracking-wider">
               {invoices.filter(inv => inv.status === 'unpaid').length} pending
             </p>
           </div>
 
-          <div className="bg-card rounded-4xl p-6 md:p-8 shadow-2xl border border-border group hover:border-primary/50 transition-all duration-300">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Overdue</h3>
-              <div className="p-2 bg-red-500/10 rounded-xl">
-                <TrendingDown className="w-5 h-5 text-red-500" />
+          <div className="bg-card rounded-2xl md:rounded-4xl p-4 md:p-8 shadow-2xl border border-border group hover:border-primary/50 transition-all duration-300">
+            <div className="flex items-center justify-between mb-3 md:mb-6">
+              <h3 className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest">Overdue</h3>
+              <div className="p-1.5 md:p-2 bg-red-500/10 rounded-lg md:rounded-xl">
+                <TrendingDown className="w-4 h-4 md:w-5 md:h-5 text-red-500" />
               </div>
             </div>
-            <p className="text-3xl md:text-4xl font-black text-foreground tracking-tighter mb-2">₦{totalOverdue.toLocaleString()}</p>
-            <p className="text-xs font-bold text-red-500 flex items-center gap-1 uppercase tracking-wider">
+            <p className="text-2xl md:text-4xl font-black text-foreground tracking-tighter mb-1 md:mb-2">₦{totalOverdue.toLocaleString()}</p>
+            <p className="text-[10px] md:text-xs font-bold text-red-500 flex items-center gap-1 uppercase tracking-wider">
               {invoices.filter(inv => inv.status === 'overdue').length} alerts
             </p>
           </div>
         </div>
 
         {/* Cash Flow Summary */}
-        <div className="bg-card rounded-4xl p-6 md:p-10 shadow-2xl border border-border mb-8 md:mb-12 overflow-hidden relative group">
+        <div className="bg-card rounded-2xl md:rounded-4xl p-4 md:p-10 shadow-2xl border border-border mb-6 md:mb-12 overflow-hidden relative group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-primary/10 transition-colors" />
           <h2 className="text-xl font-black text-foreground mb-6 md:mb-8 relative z-10 flex items-center gap-3">
              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
@@ -143,9 +144,9 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Invoices */}
-        <div className="bg-card rounded-4xl shadow-2xl border border-border mb-10 overflow-hidden">
-          <div className="p-6 md:p-8 border-b border-border flex items-center justify-between bg-background/20">
-            <h2 className="text-xl font-black text-foreground tracking-tight">Recent Activity</h2>
+          <div className="bg-card rounded-2xl md:rounded-4xl shadow-2xl border border-border mb-6 md:mb-10 overflow-hidden">
+          <div className="p-3 md:p-8 border-b border-border flex items-center justify-between bg-background/20">
+            <h2 className="text-sm md:text-xl font-black text-foreground tracking-tight">Recent Activity</h2>
             <Link
               href="/invoices"
               className="px-4 py-2 bg-primary/10 text-primary rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition-all transform hover:scale-105"

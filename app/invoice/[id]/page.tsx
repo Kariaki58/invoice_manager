@@ -134,12 +134,12 @@ export default function InvoicePreview() {
         {/* Invoice Preview */}
         <div className="bg-card rounded-[2.5rem] shadow-2xl border border-border overflow-hidden">
           {/* Invoice Header Gradient */}
-          <div className="bg-linear-to-br from-primary via-purple-600 to-indigo-700 p-12 text-white relative overflow-hidden">
+          <div className="bg-linear-to-br from-primary via-purple-600 to-indigo-700 p-6 md:p-12 text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
-            <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+            <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8">
               <div>
-                <h1 className="text-4xl font-black mb-2 tracking-tighter">{settings.businessName || 'Your Business'}</h1>
-                <p className="text-purple-100 font-bold opacity-80 uppercase tracking-[0.2em] text-xs">Professional Service Invoice</p>
+                <h1 className="text-xl md:text-4xl font-black mb-1 md:mb-2 tracking-tighter">{settings.businessName || 'Your Business'}</h1>
+                <p className="text-purple-100 font-bold opacity-80 uppercase tracking-[0.2em] text-[10px] md:text-xs">Professional Service Invoice</p>
               </div>
               <div className="text-right">
                 <h2 className="text-2xl font-black tracking-widest mb-1 opacity-70"># {invoice.invoiceNumber}</h2>
