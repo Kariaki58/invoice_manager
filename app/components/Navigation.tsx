@@ -2,11 +2,43 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, FileText, Plus, Settings as SettingsIcon } from 'lucide-react';
+import { Home, FileText, Plus, Settings as SettingsIcon, LogOut } from 'lucide-react';
 import Logo from './Logo';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 export default function Navigation() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+
+  // Don't show navigation on auth pages
+  const publicPaths = ['/auth/login', '/auth/signup', '/auth/callback'];
+  const isPublicPath = publicPaths.includes(pathname);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+
+    if (!isPublicPath) {
+      checkUser();
+    }
+  }, [isPublicPath]);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/auth/login');
+    router.refresh();
+  };
+
+  if (isPublicPath) {
+    return null;
+  }
 
   const navItems = [
     { href: '/', label: 'Dashboard', icon: Home },
@@ -48,6 +80,13 @@ export default function Navigation() {
               </Link>
             );
           })}
+          <button
+            onClick={handleLogout}
+            className="flex flex-col items-center justify-center p-4 transition-all duration-300 relative group text-muted-foreground hover:text-red-500"
+            aria-label="Logout"
+          >
+            <LogOut className="w-7 h-7 transition-transform duration-300 group-active:scale-90" />
+          </button>
         </div>
       </nav>
 
@@ -81,6 +120,16 @@ export default function Navigation() {
                 </Link>
               );
             })}
+            <button
+              onClick={handleLogout}
+              className="p-4 rounded-4xl transition-all duration-300 group relative text-muted-foreground hover:bg-red-500/10 hover:text-red-500 mt-auto mb-4"
+              title="Logout"
+            >
+              <LogOut className="w-7 h-7 transition-transform group-hover:scale-110" />
+              <span className="absolute left-24 bg-card border border-border text-foreground text-[10px] font-black uppercase tracking-widest py-2 px-3 rounded-xl opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0 whitespace-nowrap z-50 pointer-events-none shadow-2xl">
+                Logout
+              </span>
+            </button>
           </div>
         </div>
       </aside>
