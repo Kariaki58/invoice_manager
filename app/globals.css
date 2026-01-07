@@ -24,3 +24,32 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Smooth page transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* PWA install prompt styling */
+#install-prompt {
+  position: fixed;
+  bottom: 80px;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 16px;
+  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+}
+
+@media (min-width: 768px) {
+  #install-prompt {
+    bottom: auto;
+    top: 0;
+    border-top: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+}
