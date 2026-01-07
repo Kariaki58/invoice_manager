@@ -2,7 +2,8 @@
 
 import { useState, useRef } from 'react';
 import { useInvoices, AccountDetails, Settings as SettingsType } from '../context/InvoiceContext';
-import { Upload, Save, CreditCard, Building2, Plus, Trash2, Edit2, Check, X, Wallet } from 'lucide-react';
+import { Upload, Save, CreditCard, Building2, Plus, Trash2, Edit2, Check, X, Wallet, Monitor } from 'lucide-react';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function Settings() {
   const { settings, updateSettings, addAccount, updateAccount, deleteAccount, setDefaultAccount } = useInvoices();
@@ -132,12 +133,28 @@ export default function Settings() {
   return (
     <div className="min-h-screen bg-background p-4 md:p-8 transition-colors pb-24">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-12">
-          <h1 className="text-4xl font-black text-foreground mb-3 tracking-tighter">Settings</h1>
-          <p className="text-muted-foreground font-medium">Manage your business profile and global preferences</p>
+        <div className="mb-8 md:mb-12">
+          <h1 className="text-3xl md:text-4xl font-black text-foreground mb-2 md:mb-3 tracking-tighter">Settings</h1>
+          <p className="text-muted-foreground font-medium text-sm md:text-base">Manage your business profile and global preferences</p>
         </div>
 
-        <div className="space-y-12">
+        <div className="space-y-6 md:space-y-12">
+          {/* Appearance Section */}
+          <div className="bg-card rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-2xl border border-border relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-2xl">
+                  <Monitor className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl md:text-2xl font-black text-foreground tracking-tight">Appearance</h2>
+                  <p className="text-muted-foreground text-xs md:text-sm font-medium">Customize how the app looks for you</p>
+                </div>
+              </div>
+              <ThemeToggle />
+            </div>
+          </div>
           {/* Business Profile */}
           <div className="bg-card rounded-[2.5rem] p-8 md:p-12 shadow-2xl border border-border relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />

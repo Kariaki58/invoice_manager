@@ -45,6 +45,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+::selection {
+  background: var(--primary);
+  color: white;
 }
 
 /* Smooth page transitions */
