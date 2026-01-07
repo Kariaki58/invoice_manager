@@ -18,11 +18,11 @@ export default function InvoicePreview() {
   if (!invoice) {
     return (
       <div className="min-h-screen bg-background p-4 md:p-8 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-xl text-muted-foreground mb-6 font-bold">Invoice not found</p>
+        <div className="text-center px-4">
+          <p className="text-base md:text-xl text-muted-foreground mb-4 md:mb-6 font-bold">Invoice not found</p>
           <button
             onClick={() => router.push('/invoices')}
-            className="px-8 py-4 bg-primary text-white rounded-2xl font-black hover:bg-primary/90 transition-all shadow-xl shadow-primary/25"
+            className="px-6 py-3 md:px-8 md:py-4 bg-primary text-white rounded-xl md:rounded-2xl font-black text-sm md:text-base hover:bg-primary/90 transition-all shadow-xl shadow-primary/25"
           >
             Back to Invoices
           </button>
@@ -64,198 +64,213 @@ export default function InvoicePreview() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8 transition-colors">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-background p-3 md:p-8 transition-colors overflow-x-hidden">
+      <div className="max-w-4xl mx-auto w-full">
         {/* Header Actions */}
-        <div className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="mb-4 md:mb-10 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors font-bold group"
+            className="inline-flex items-center gap-1.5 md:gap-2 text-muted-foreground hover:text-primary transition-colors font-bold group text-sm md:text-base"
           >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform" />
             Back
           </button>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2 md:gap-3">
             <button
               onClick={handleCopyLink}
-              className="flex items-center gap-2 px-6 py-3 bg-card border border-border rounded-xl font-bold transition-all hover:bg-muted/10"
+              className="flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-6 md:py-3 bg-card border border-border rounded-lg md:rounded-xl font-bold text-xs md:text-sm transition-all hover:bg-muted/10"
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span className="text-green-500">Copied!</span>
+                  <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-500" />
+                  <span className="text-green-500 text-xs md:text-sm">Copied!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-4 h-4" />
-                  Link
+                  <Copy className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  <span className="hidden sm:inline">Link</span>
                 </>
               )}
             </button>
             <button
               onClick={handleWhatsApp}
-              className="flex items-center gap-2 px-6 py-3 bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all transform hover:scale-105 active:scale-95"
+              className="flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-6 md:py-3 bg-green-500/10 text-green-500 border border-green-500/20 rounded-lg md:rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all transform hover:scale-105 active:scale-95"
             >
-              <MessageSquare className="w-4 h-4" />
-              WhatsApp
+              <MessageSquare className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">WhatsApp</span>
+              <span className="sm:hidden">WA</span>
             </button>
             <button
               onClick={handleSMS}
-              className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 transform hover:scale-105 active:scale-95"
+              className="flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-6 md:py-3 bg-primary text-white rounded-lg md:rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 transform hover:scale-105 active:scale-95"
             >
-              <Send className="w-4 h-4" />
-              Share SMS
+              <Send className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Share SMS</span>
+              <span className="sm:hidden">SMS</span>
             </button>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5 md:gap-2">
               <button
                 onClick={handleEmail}
-                className="flex items-center justify-center p-3 bg-card border border-border rounded-xl hover:bg-muted/10 transition-all text-muted-foreground"
+                className="flex items-center justify-center p-2 md:p-3 bg-card border border-border rounded-lg md:rounded-xl hover:bg-muted/10 transition-all text-muted-foreground"
                 title="Send Email"
               >
-                <Mail className="w-5 h-5" />
+                <Mail className="w-4 h-4 md:w-5 md:h-5" />
               </button>
               <button
                 onClick={() => window.print()}
-                className="flex items-center justify-center p-3 bg-card border border-border rounded-xl hover:bg-muted/10 transition-all text-muted-foreground"
+                className="flex items-center justify-center p-2 md:p-3 bg-card border border-border rounded-lg md:rounded-xl hover:bg-muted/10 transition-all text-muted-foreground"
                 title="Print"
               >
-                <Printer className="w-5 h-5" />
+                <Printer className="w-4 h-4 md:w-5 md:h-5" />
               </button>
               <button
-                className="flex items-center justify-center p-3 bg-card border border-border rounded-xl hover:bg-muted/10 transition-all text-muted-foreground"
+                className="flex items-center justify-center p-2 md:p-3 bg-card border border-border rounded-lg md:rounded-xl hover:bg-muted/10 transition-all text-muted-foreground"
                 title="Download PDF"
               >
-                <Download className="w-5 h-5" />
+                <Download className="w-4 h-4 md:w-5 md:h-5" />
               </button>
             </div>
           </div>
         </div>
 
         {/* Invoice Preview */}
-        <div className="bg-card rounded-[2.5rem] shadow-2xl border border-border overflow-hidden">
+        <div className="bg-card rounded-2xl md:rounded-[2.5rem] shadow-2xl border border-border overflow-hidden">
           {/* Invoice Header Gradient */}
-          <div className="bg-linear-to-br from-primary via-purple-600 to-indigo-700 p-6 md:p-12 text-white relative overflow-hidden">
+          <div className="bg-linear-to-br from-primary via-purple-600 to-indigo-700 p-4 md:p-12 text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
-            <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8">
-              <div>
-                <h1 className="text-xl md:text-4xl font-black mb-1 md:mb-2 tracking-tighter">{settings.businessName || 'Your Business'}</h1>
-                <p className="text-purple-100 font-bold opacity-80 uppercase tracking-[0.2em] text-[10px] md:text-xs">Professional Service Invoice</p>
+            <div className="relative z-10 flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-8">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg md:text-4xl font-black mb-0.5 md:mb-2 tracking-tighter truncate">{settings.businessName || 'Your Business'}</h1>
+                <p className="text-purple-100 font-bold opacity-80 uppercase tracking-[0.2em] text-[9px] md:text-xs">Professional Service Invoice</p>
               </div>
-              <div className="text-right">
-                <h2 className="text-2xl font-black tracking-widest mb-1 opacity-70"># {invoice.invoiceNumber}</h2>
-                <div className="text-5xl font-black tracking-tighter mt-4">
+              <div className="text-right md:text-right flex-shrink-0">
+                <h2 className="text-base md:text-2xl font-black tracking-widest mb-0.5 md:mb-1 opacity-70"># {invoice.invoiceNumber}</h2>
+                <div className="text-2xl md:text-5xl font-black tracking-tighter mt-2 md:mt-4">
                   ₦{(invoice.total || 0).toLocaleString()}
                 </div>
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest border border-white/30 mt-4">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                  Status: {invoice.status}
+                <div className="inline-flex items-center gap-1.5 md:gap-2 px-2.5 py-1 md:px-4 md:py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border border-white/30 mt-2 md:mt-4">
+                  <span className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-white animate-pulse" />
+                  <span className="hidden sm:inline">Status: </span>{invoice.status}
                 </div>
               </div>
             </div>
           </div>
 
           {/* Invoice Details Container */}
-          <div className="p-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
-              <div className="space-y-8">
+          <div className="p-4 md:p-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 mb-6 md:mb-12">
+              <div className="space-y-4 md:space-y-8">
                 <div>
-                  <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3">Client Information</h3>
-                  <div className="space-y-1">
-                    <p className="text-xl font-black text-foreground">{invoice.clientName}</p>
-                    <p className="text-muted-foreground font-medium text-sm">{invoice.clientEmail}</p>
-                    <p className="text-muted-foreground font-medium text-sm">{invoice.clientPhone}</p>
+                  <h3 className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2 md:mb-3">Client Information</h3>
+                  <div className="space-y-0.5 md:space-y-1">
+                    <p className="text-base md:text-xl font-black text-foreground truncate">{invoice.clientName}</p>
+                    <p className="text-muted-foreground font-medium text-xs md:text-sm truncate">{invoice.clientEmail}</p>
+                    <p className="text-muted-foreground font-medium text-xs md:text-sm">{invoice.clientPhone}</p>
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-4">Payment Account</h3>
+                  <h3 className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3 md:mb-4">Payment Account</h3>
                   {accountDetails ? (
-                    <div className="p-6 bg-primary/5 rounded-2xl border border-primary/20 space-y-4">
+                    <div className="p-4 md:p-6 bg-primary/5 rounded-xl md:rounded-2xl border border-primary/20 space-y-3 md:space-y-4">
                       <div>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Bank Name</p>
-                        <p className="font-black text-primary">{accountDetails.bankName}</p>
+                        <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase mb-0.5 md:mb-1">Bank Name</p>
+                        <p className="font-black text-primary text-sm md:text-base truncate">{accountDetails.bankName}</p>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-3 md:gap-4">
                         <div>
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Account No.</p>
-                          <p className="font-black text-foreground font-mono tracking-tighter text-lg">{accountDetails.accountNumber}</p>
+                          <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase mb-0.5 md:mb-1">Account No.</p>
+                          <p className="font-black text-foreground font-mono tracking-tighter text-sm md:text-lg break-all">{accountDetails.accountNumber}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Type</p>
-                          <p className="font-bold text-foreground text-sm">{accountDetails.accountType || 'Current'}</p>
+                          <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase mb-0.5 md:mb-1">Type</p>
+                          <p className="font-bold text-foreground text-xs md:text-sm">{accountDetails.accountType || 'Current'}</p>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm font-bold text-yellow-500 italic">No bank account details configured</p>
+                    <p className="text-xs md:text-sm font-bold text-yellow-500 italic">No bank account details configured</p>
                   )}
                 </div>
               </div>
-              <div className="md:text-right space-y-8">
+              <div className="md:text-right space-y-4 md:space-y-8">
                 <div>
-                  <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Issue Date</h3>
-                  <p className="font-bold text-foreground">{format(new Date(invoice.createdAt), 'MMMM dd, yyyy')}</p>
+                  <h3 className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-0.5 md:mb-1">Issue Date</h3>
+                  <p className="font-bold text-foreground text-sm md:text-base">{format(new Date(invoice.createdAt), 'MMMM dd, yyyy')}</p>
                 </div>
                 <div>
-                  <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Payment Deadline</h3>
-                  <p className="font-black text-primary text-xl">
+                  <h3 className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-0.5 md:mb-1">Payment Deadline</h3>
+                  <p className="font-black text-primary text-base md:text-xl">
                     {format(new Date(invoice.dueDate), 'MMMM dd, yyyy')}
                   </p>
                 </div>
-                <div className="pt-4 mt-4 border-t border-border inline-block md:ml-auto">
-                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Payment Method</p>
-                   <p className="font-black text-foreground">Direct Bank Transfer</p>
+                <div className="pt-3 md:pt-4 mt-3 md:mt-4 border-t border-border inline-block md:ml-auto">
+                   <p className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-0.5 md:mb-1">Payment Method</p>
+                   <p className="font-black text-foreground text-sm md:text-base">Direct Bank Transfer</p>
                 </div>
               </div>
             </div>
 
             {/* Items Table */}
-            <div className="mb-12">
-              <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-6">Service Summary</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="py-4 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">Description</th>
-                      <th className="py-4 text-center text-[10px] font-black text-muted-foreground uppercase tracking-widest w-24">Qty</th>
-                      <th className="py-4 text-right text-[10px] font-black text-muted-foreground uppercase tracking-widest w-32">Price</th>
-                      <th className="py-4 text-right text-[10px] font-black text-muted-foreground uppercase tracking-widest w-32">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {invoice.items.map((item) => (
-                      <tr key={item.id} className="group">
-                        <td className="py-6 pr-4">
-                          <p className="font-bold text-foreground text-sm leading-relaxed">{item.description}</p>
-                        </td>
-                        <td className="py-6 text-center font-bold text-muted-foreground text-sm">{item.quantity}</td>
-                        <td className="py-6 text-right font-bold text-muted-foreground text-sm">₦{item.price.toLocaleString()}</td>
-                        <td className="py-6 text-right font-black text-foreground text-sm">₦{(item.total || item.quantity * item.price).toLocaleString()}</td>
+            <div className="mb-6 md:mb-12">
+              <h3 className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3 md:mb-6">Service Summary</h3>
+              <div className="overflow-x-auto -mx-4 md:mx-0">
+                <div className="inline-block min-w-full align-middle px-4 md:px-0">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="py-2 md:py-4 text-left text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest">Description</th>
+                        <th className="py-2 md:py-4 text-center text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest w-16 md:w-24">Qty</th>
+                        <th className="py-2 md:py-4 text-right text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest w-24 md:w-32">Price</th>
+                        <th className="py-2 md:py-4 text-right text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest w-24 md:w-32">Total</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {invoice.items.map((item) => {
+                        const quantity = (item.quantity != null && !isNaN(item.quantity)) ? Number(item.quantity) : 0;
+                        const price = (item.price != null && !isNaN(item.price)) ? Number(item.price) : 0;
+                        const itemTotal = (item.total != null && !isNaN(item.total))
+                          ? Number(item.total)
+                          : (quantity * price);
+                        const safeTotal = (!isNaN(itemTotal) && itemTotal >= 0) ? itemTotal : 0;
+                        const safePrice = (!isNaN(price) && price >= 0) ? price : 0;
+                        const safeQuantity = (!isNaN(quantity) && quantity >= 0) ? quantity : 0;
+
+                        return (
+                          <tr key={item.id} className="group">
+                            <td className="py-3 md:py-6 pr-2 md:pr-4">
+                              <p className="font-bold text-foreground text-xs md:text-sm leading-relaxed break-words">{item.description || ''}</p>
+                            </td>
+                            <td className="py-3 md:py-6 text-center font-bold text-muted-foreground text-xs md:text-sm">{safeQuantity}</td>
+                            <td className="py-3 md:py-6 text-right font-bold text-muted-foreground text-xs md:text-sm">₦{safePrice.toLocaleString('en-NG')}</td>
+                            <td className="py-3 md:py-6 text-right font-black text-foreground text-xs md:text-sm">₦{safeTotal.toLocaleString('en-NG')}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
 
             {/* Summary */}
-            <div className="flex justify-end pt-8 border-t border-border">
-              <div className="w-full md:w-80 space-y-4">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="font-bold text-muted-foreground uppercase tracking-[0.15em] text-[10px]">Subtotal</span>
-                  <span className="font-black text-foreground">₦{(invoice.subtotal || 0).toLocaleString()}</span>
+            <div className="flex justify-end pt-4 md:pt-8 border-t border-border">
+              <div className="w-full md:w-80 space-y-2.5 md:space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-muted-foreground uppercase tracking-[0.15em] text-[9px] md:text-[10px]">Subtotal</span>
+                  <span className="font-black text-foreground text-sm md:text-base">₦{(invoice.subtotal || 0).toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="font-bold text-muted-foreground uppercase tracking-[0.15em] text-[10px]">VAT ({invoice.vat}%)</span>
-                  <span className="font-black text-foreground">₦{((invoice.subtotal * invoice.vat || 0) / 100).toLocaleString()}</span>
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-muted-foreground uppercase tracking-[0.15em] text-[9px] md:text-[10px]">VAT ({invoice.vat}%)</span>
+                  <span className="font-black text-foreground text-sm md:text-base">₦{((invoice.subtotal * invoice.vat || 0) / 100).toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="font-bold text-muted-foreground uppercase tracking-[0.15em] text-[10px]">Tax Withheld</span>
-                  <span className="font-black text-red-500">-₦{((invoice.subtotal * invoice.withholdingTax || 0) / 100).toLocaleString()}</span>
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-muted-foreground uppercase tracking-[0.15em] text-[9px] md:text-[10px]">Tax Withheld</span>
+                  <span className="font-black text-red-500 text-sm md:text-base">-₦{((invoice.subtotal * invoice.withholdingTax || 0) / 100).toLocaleString()}</span>
                 </div>
-                <div className="pt-6 mt-4 border-t border-border">
+                <div className="pt-4 md:pt-6 mt-3 md:mt-4 border-t border-border">
                   <div className="flex justify-between items-end">
-                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Grand Total Due</span>
-                    <span className="text-4xl font-black text-foreground tracking-tighter">₦{(invoice.total || 0).toLocaleString()}</span>
+                    <span className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-0.5 md:mb-1">Grand Total Due</span>
+                    <span className="text-2xl md:text-4xl font-black text-foreground tracking-tighter">₦{(invoice.total || 0).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -263,9 +278,9 @@ export default function InvoicePreview() {
           </div>
         </div>
 
-        <div className="mt-12 text-center pb-20">
-          <p className="text-muted-foreground font-medium text-sm">
-            Generated with Spriie Invoice Manager
+        <div className="mt-6 md:mt-12 text-center pb-20 md:pb-8">
+          <p className="text-muted-foreground font-medium text-xs md:text-sm">
+            Generated with invoiceme
           </p>
         </div>
       </div>
