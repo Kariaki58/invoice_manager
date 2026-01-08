@@ -9,11 +9,22 @@ import { useState } from 'react';
 export default function InvoicePreview() {
   const router = useRouter();
   const params = useParams();
-  const { getInvoice, settings, getAccount } = useInvoices();
+  const { getInvoice, settings, getAccount, loading } = useInvoices();
   const invoice = getInvoice(params.id as string);
   const [copied, setCopied] = useState(false);
   
   const accountDetails = invoice?.accountId ? getAccount(invoice.accountId) : null;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background p-4 md:p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground font-medium">Loading invoice...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!invoice) {
     return (
@@ -56,7 +67,7 @@ export default function InvoicePreview() {
   };
 
   const handleEmail = () => {
-    const subject = encodeURIComponent(`Invoice ${invoice.invoiceNumber} from ${settings.businessName || 'Your Business'}`);
+    const subject = encodeURIComponent(`Invoice ${invoice.invoiceNumber} from ${settings?.businessName || 'Your Business'}`);
     const body = encodeURIComponent(
       `Dear ${invoice.clientName},\n\nPlease find attached your invoice ${invoice.invoiceNumber}.\n\nTotal Amount: ₦${(invoice.total || 0).toLocaleString('en-NG')}\nDue Date: ${format(new Date(invoice.dueDate), 'MMMM dd, yyyy')}\n\nView invoice: ${invoiceLink}\n\nThank you for your business!`
     );
@@ -140,7 +151,7 @@ export default function InvoicePreview() {
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
             <div className="relative z-10 flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-8">
               <div className="min-w-0 flex-1">
-                <h1 className="text-lg md:text-4xl font-black mb-0.5 md:mb-2 tracking-tighter truncate">{settings.businessName || 'Your Business'}</h1>
+                <h1 className="text-lg md:text-4xl font-black mb-0.5 md:mb-2 tracking-tighter truncate">{settings?.businessName || 'Your Business'}</h1>
                 <p className="text-purple-100 font-bold opacity-80 uppercase tracking-[0.2em] text-[9px] md:text-xs">Professional Service Invoice</p>
               </div>
               <div className="text-right md:text-right flex-shrink-0">

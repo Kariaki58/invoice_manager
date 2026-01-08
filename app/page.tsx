@@ -4,23 +4,38 @@ import { useInvoices } from './context/InvoiceContext';
 import Link from 'next/link';
 import { Plus, TrendingUp, TrendingDown, Clock, CheckCircle, FileText, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
+import { useMemo } from 'react';
 
 export default function Dashboard() {
-  const { invoices } = useInvoices();
+  const { invoices, loading } = useInvoices();
 
-  const totalPaid = invoices
-    .filter(inv => inv.status === 'paid')
-    .reduce((sum, inv) => sum + inv.total, 0);
+  // Memoize expensive calculations
+  const { totalPaid, totalUnpaid, totalOverdue, recentInvoices, paidCount, unpaidCount, overdueCount } = useMemo(() => {
+    const paid = invoices.filter(inv => inv.status === 'paid');
+    const unpaid = invoices.filter(inv => inv.status === 'unpaid');
+    const overdue = invoices.filter(inv => inv.status === 'overdue');
 
-  const totalUnpaid = invoices
-    .filter(inv => inv.status === 'unpaid')
-    .reduce((sum, inv) => sum + inv.total, 0);
+    return {
+      totalPaid: paid.reduce((sum, inv) => sum + inv.total, 0),
+      totalUnpaid: unpaid.reduce((sum, inv) => sum + inv.total, 0),
+      totalOverdue: overdue.reduce((sum, inv) => sum + inv.total, 0),
+      recentInvoices: [...invoices].reverse().slice(0, 5),
+      paidCount: paid.length,
+      unpaidCount: unpaid.length,
+      overdueCount: overdue.length,
+    };
+  }, [invoices]);
 
-  const totalOverdue = invoices
-    .filter(inv => inv.status === 'overdue')
-    .reduce((sum, inv) => sum + inv.total, 0);
-
-  const recentInvoices = [...invoices].reverse().slice(0, 5);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background p-3 md:p-8 transition-colors pb-32 md:pb-8 overflow-x-hidden flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground font-medium">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -63,7 +78,7 @@ export default function Dashboard() {
             </div>
             <p className="text-2xl md:text-4xl font-black text-foreground tracking-tighter mb-1 md:mb-2">₦{totalPaid.toLocaleString()}</p>
             <p className="text-[10px] md:text-xs font-bold text-green-500 flex items-center gap-1 uppercase tracking-wider">
-              {invoices.filter(inv => inv.status === 'paid').length} payments
+              {paidCount} payments
             </p>
           </div>
 
@@ -76,7 +91,7 @@ export default function Dashboard() {
             </div>
             <p className="text-2xl md:text-4xl font-black text-foreground tracking-tighter mb-1 md:mb-2">₦{totalUnpaid.toLocaleString()}</p>
             <p className="text-[10px] md:text-xs font-bold text-yellow-500 flex items-center gap-1 uppercase tracking-wider">
-              {invoices.filter(inv => inv.status === 'unpaid').length} pending
+              {unpaidCount} pending
             </p>
           </div>
 
@@ -89,7 +104,7 @@ export default function Dashboard() {
             </div>
             <p className="text-2xl md:text-4xl font-black text-foreground tracking-tighter mb-1 md:mb-2">₦{totalOverdue.toLocaleString()}</p>
             <p className="text-[10px] md:text-xs font-bold text-red-500 flex items-center gap-1 uppercase tracking-wider">
-              {invoices.filter(inv => inv.status === 'overdue').length} alerts
+              {overdueCount} alerts
             </p>
           </div>
         </div>

@@ -13,6 +13,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('dark');
+  const [mounted, setMounted] = useState(false);
 
   const applyTheme = (newTheme: Theme) => {
     if (typeof window === 'undefined') return;
@@ -25,12 +26,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    setMounted(true);
     // Load theme from localStorage, default to dark mode
     const storedTheme = localStorage.getItem('theme') as Theme;
     const initialTheme = storedTheme || 'dark'; // Default to dark mode
     setTheme(initialTheme);
     applyTheme(initialTheme);
   }, []);
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return <>{children}</>;
+  }
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';

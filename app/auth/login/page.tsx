@@ -1,18 +1,11 @@
-import { Suspense } from 'react';
-import LoginForm from './LoginHelper';
+import LoginPage from "./LoginHelper";
+import { Suspense } from "react";
 
-interface PageProps {
-  searchParams?: {
-    redirect?: string;
-  };
-}
 
-export default function LoginPage({ searchParams }: PageProps) {
-  const redirect = searchParams?.redirect ?? '/';
-
+export default function Login() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <LoginForm redirect={redirect} />
+      <LoginPage />
     </Suspense>
   );
 }

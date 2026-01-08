@@ -33,6 +33,7 @@ export const viewport: Viewport = {
 
 import { InvoiceProvider } from './context/InvoiceContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
 import Navigation from './components/Navigation';
 import ServiceWorkerRegistration from './components/ServiceWorkerRegistration';
 import PWAUpdatePrompt from './components/PWAUpdatePrompt';
@@ -54,19 +55,22 @@ export default function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
+        suppressHydrationWarning
       >
         <ThemeProvider>
-          <InvoiceProvider>
-            <ServiceWorkerRegistration />
-            <PWAUpdatePrompt />
-            <InstallPrompt />
-            <div className="flex min-h-screen bg-background transition-colors">
-              <Navigation />
-              <main className="flex-1 pb-20 md:pb-0 md:ml-20">
-                {children}
-              </main>
-            </div>
-          </InvoiceProvider>
+          <AuthProvider>
+        <InvoiceProvider>
+              <ServiceWorkerRegistration />
+              <PWAUpdatePrompt />
+              <InstallPrompt />
+              <div className="flex min-h-screen bg-background transition-colors">
+            <Navigation />
+            <main className="flex-1 pb-20 md:pb-0 md:ml-20">
+              {children}
+            </main>
+          </div>
+        </InvoiceProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

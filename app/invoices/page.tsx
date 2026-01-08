@@ -7,11 +7,22 @@ import { Clock, Search, Eye, Filter, ChevronRight } from 'lucide-react';
 import { useInvoices, Invoice } from '../context/InvoiceContext';
 
 export default function InvoiceList() {
-  const { invoices, updateInvoiceStatus } = useInvoices();
+  const { invoices, updateInvoiceStatus, loading } = useInvoices();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'unpaid' | 'overdue'>('all');
   const [clientFilter, setClientFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background p-3 md:p-8 transition-colors pb-32 md:pb-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground font-medium">Loading invoices...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleStatusChange = (id: string, newStatus: Invoice['status']) => {
     updateInvoiceStatus(id, newStatus);

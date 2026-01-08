@@ -1,28 +1,48 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useInvoices, InvoiceItem } from '../context/InvoiceContext';
 import { Plus, Trash2, Save, ChevronLeft, Building2, CreditCard, ReceiptText, Calendar } from 'lucide-react';
 
 export default function CreateInvoice() {
   const router = useRouter();
-  const { addInvoice, settings } = useInvoices();
+  const { addInvoice, settings, loading } = useInvoices();
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientPhone, setClientPhone] = useState('');
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: '1', description: '', quantity: 1, price: 0, total: 0 },
   ]);
-  const [vat, setVat] = useState(settings.defaultVAT);
-  const [withholdingTax, setWithholdingTax] = useState(settings.defaultWithholdingTax);
+  const [vat, setVat] = useState(7.5);
+  const [withholdingTax, setWithholdingTax] = useState(5.0);
   const [dueDate, setDueDate] = useState('');
+  const [selectedAccountId, setSelectedAccountId] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useState(() => {
+  // Update state when settings load (after all hooks are declared)
+  useEffect(() => {
+    if (settings) {
+      setVat(settings.defaultVAT || 7.5);
+      setWithholdingTax(settings.defaultWithholdingTax || 5.0);
+      setSelectedAccountId(settings.defaultAccountId || '');
+    }
+  }, [settings]);
+
+  useEffect(() => {
     setDueDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
-  });
-  
-  const [selectedAccountId, setSelectedAccountId] = useState(settings.defaultAccountId || '');
+  }, []);
+
+  if (loading || !settings) {
+    return (
+      <div className="min-h-screen bg-background p-4 md:p-8 transition-colors pb-32 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const addItem = () => {
     setItems([
@@ -57,8 +77,11 @@ export default function CreateInvoice() {
   const withholdingTaxAmount = (subtotal * withholdingTax) / 100;
   const total = subtotal + vatAmount - withholdingTaxAmount;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSubmitting) return;
+
     if (!clientName || !clientEmail || !clientPhone) {
       alert('Please fill in all client details');
       return;
@@ -67,25 +90,33 @@ export default function CreateInvoice() {
       alert('Please fill in all item details with valid prices');
       return;
     }
-    if (!selectedAccountId && settings.accounts.length > 0) {
+    if (!selectedAccountId && settings?.accounts && settings.accounts.length > 0) {
       alert('Please select an account for payment');
       return;
     }
 
-    addInvoice({
-      clientName,
-      clientEmail,
-      clientPhone,
-      items,
-      subtotal,
-      vat: vatAmount,
-      withholdingTax: withholdingTaxAmount,
-      total,
-      dueDate: new Date(dueDate).toISOString(),
-      accountId: selectedAccountId || undefined,
-    });
+    try {
+      setIsSubmitting(true);
+      await addInvoice({
+        clientName,
+        clientEmail,
+        clientPhone,
+        items,
+        subtotal,
+        vat: vatAmount,
+        withholdingTax: withholdingTaxAmount,
+        total,
+        dueDate: new Date(dueDate).toISOString(),
+        accountId: selectedAccountId || undefined,
+      });
 
-    router.push('/invoices');
+      // Success - redirect to invoices page
+      router.push('/invoices');
+    } catch (error: any) {
+      console.error('Error creating invoice:', error);
+      alert(error.message || 'Failed to create invoice. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -293,7 +324,7 @@ export default function CreateInvoice() {
                 </h2>
             </div>
 
-            {settings.accounts && settings.accounts.length > 0 ? (
+            {settings?.accounts && settings.accounts.length > 0 ? (
               <div className="space-y-4">
                  <select
                     value={selectedAccountId}
@@ -302,7 +333,7 @@ export default function CreateInvoice() {
                     required
                   >
                     <option value="">Select bank account...</option>
-                    {settings.accounts.map((account) => (
+                    {settings?.accounts?.map((account) => (
                       <option key={account.id} value={account.id}>
                         {account.accountName} - {account.bankName}
                       </option>
@@ -312,7 +343,7 @@ export default function CreateInvoice() {
                 {selectedAccountId && (
                   <div className="p-6 bg-primary/5 rounded-2xl border border-primary/20 flex items-center justify-between animate-in fade-in slide-in-from-top-2">
                     {(() => {
-                      const selected = settings.accounts.find(acc => acc.id === selectedAccountId);
+                      const selected = settings?.accounts?.find(acc => acc.id === selectedAccountId);
                       return selected ? (
                         <>
                           <div className="space-y-0.5">
@@ -358,11 +389,22 @@ export default function CreateInvoice() {
                   </div>
                   <button
                     type="submit"
-                    className="w-full md:w-auto px-4 py-2.5 md:px-10 md:py-5 bg-primary text-white rounded-xl md:rounded-2xl font-black text-xs md:text-lg hover:bg-primary/90 transition-all shadow-2xl shadow-primary/40 active:scale-95 flex items-center justify-center gap-2 md:gap-3"
+                    disabled={isSubmitting}
+                    className="w-full md:w-auto px-4 py-2.5 md:px-10 md:py-5 bg-primary text-white rounded-xl md:rounded-2xl font-black text-xs md:text-lg hover:bg-primary/90 transition-all shadow-2xl shadow-primary/40 active:scale-95 flex items-center justify-center gap-2 md:gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Save className="w-4 h-4 md:w-6 md:h-6" />
-                    <span className="hidden sm:inline">Generate Invoice</span>
-                    <span className="sm:hidden">Generate</span>
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 md:w-6 md:h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span className="hidden sm:inline">Creating...</span>
+                        <span className="sm:hidden">Creating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 md:w-6 md:h-6" />
+                        <span className="hidden sm:inline">Generate Invoice</span>
+                        <span className="sm:hidden">Generate</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

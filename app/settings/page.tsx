@@ -1,15 +1,21 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useInvoices, AccountDetails, Settings as SettingsType } from '../context/InvoiceContext';
-import { Upload, Save, CreditCard, Building2, Plus, Trash2, Edit2, Check, X, Wallet, Monitor } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Upload, Save, CreditCard, Building2, Plus, Trash2, Edit2, Check, X, Wallet, Monitor, User, Loader2, LogOut } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
+import { uploadImage } from '@/lib/cloudinary';
 
 export default function Settings() {
-  const { settings, updateSettings, addAccount, updateAccount, deleteAccount, setDefaultAccount } = useInvoices();
-  const [formData, setFormData] = useState<SettingsType>(settings);
+  const { settings, updateSettings, addAccount, updateAccount, deleteAccount, setDefaultAccount, loading } = useInvoices();
+  const { profile, updateProfile, refreshProfile, signOut } = useAuth();
+  const [formData, setFormData] = useState<SettingsType | null>(settings);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [saved, setSaved] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [editingAccount, setEditingAccount] = useState<string | null>(null);
   const [accountForm, setAccountForm] = useState<Partial<AccountDetails>>({
@@ -20,11 +26,32 @@ export default function Settings() {
     isDefault: false,
   });
 
+  // Update formData when settings load
+  React.useEffect(() => {
+    if (settings) {
+      setFormData(settings);
+    }
+  }, [settings]);
+
+  if (loading || !settings || !formData) {
+    return (
+      <div className="min-h-screen bg-background p-4 md:p-8 transition-colors pb-32 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground font-medium">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
+
   const handleInputChange = <K extends keyof SettingsType>(field: K, value: SettingsType[K]) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
   };
 
   const handleNestedChange = <K extends keyof SettingsType['paymentIntegration']>(
@@ -32,23 +59,76 @@ export default function Settings() {
     field: K,
     value: SettingsType['paymentIntegration'][K]
   ) => {
-    setFormData(prev => ({
-      ...prev,
-      [parent]: {
-        ...prev[parent],
-        [field]: value,
-      },
-    }));
+    setFormData(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [field]: value,
+        },
+      };
+    });
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        handleInputChange('businessLogo', reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      alert('Invalid file type. Please upload an image (JPEG, PNG, WebP, or GIF)');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      alert('File size too large. Maximum size is 5MB');
+      return;
+    }
+
+    try {
+      setUploadingLogo(true);
+      const result = await uploadImage(file, 'logo');
+      handleInputChange('businessLogo', result.url);
+    } catch (error: any) {
+      console.error('Error uploading logo:', error);
+      alert(error.message || 'Failed to upload logo');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      alert('Invalid file type. Please upload an image (JPEG, PNG, WebP, or GIF)');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      alert('File size too large. Maximum size is 5MB');
+      return;
+    }
+
+    try {
+      setUploadingAvatar(true);
+      const result = await uploadImage(file, 'avatar');
+      await updateProfile({ avatar_url: result.url });
+      await refreshProfile();
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      alert(error.message || 'Failed to upload profile picture');
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -58,36 +138,31 @@ export default function Settings() {
     setTimeout(() => setSaved(false), 3000);
   };
 
-  const handleAddAccount = () => {
+  const handleAddAccount = async () => {
     if (!accountForm.accountName || !accountForm.bankName || !accountForm.accountNumber) {
       alert('Please fill in all required fields');
       return;
     }
-    addAccount({
-      accountName: accountForm.accountName!,
-      bankName: accountForm.bankName!,
-      accountNumber: accountForm.accountNumber!,
-      accountType: accountForm.accountType || 'Current',
-      isDefault: accountForm.isDefault || false,
-    });
-    setAccountForm({
-      accountName: '',
-      bankName: '',
-      accountNumber: '',
-      accountType: 'Current',
-      isDefault: false,
-    });
-    setShowAddAccount(false);
-    // Refresh formData to reflect new account
-    const updatedSettings = { ...settings, accounts: [...settings.accounts, {
-      id: Date.now().toString(),
-      accountName: accountForm.accountName!,
-      bankName: accountForm.bankName!,
-      accountNumber: accountForm.accountNumber!,
-      accountType: accountForm.accountType || 'Current',
-      isDefault: accountForm.isDefault || false,
-    }] };
-    setFormData(updatedSettings);
+    try {
+      await addAccount({
+        accountName: accountForm.accountName!,
+        bankName: accountForm.bankName!,
+        accountNumber: accountForm.accountNumber!,
+        accountType: accountForm.accountType || 'Current',
+        isDefault: accountForm.isDefault || false,
+      });
+      setAccountForm({
+        accountName: '',
+        bankName: '',
+        accountNumber: '',
+        accountType: 'Current',
+        isDefault: false,
+      });
+      setShowAddAccount(false);
+      // formData will be updated automatically when settings refresh
+    } catch (error) {
+      console.error('Error adding account:', error);
+    }
   };
 
   const handleEditAccount = (account: AccountDetails) => {
@@ -116,7 +191,7 @@ export default function Settings() {
       isDefault: false,
     });
     // Refresh formData
-    const updatedAccounts = settings.accounts.map(acc =>
+      const updatedAccounts = (settings?.accounts || []).map(acc =>
       acc.id === id ? { ...acc, ...accountForm } : acc
     );
     setFormData({ ...formData, accounts: updatedAccounts });
@@ -139,6 +214,69 @@ export default function Settings() {
         </div>
 
         <div className="space-y-4 md:space-y-12">
+          {/* Profile Picture Section */}
+          <div className="bg-card rounded-2xl md:rounded-[2.5rem] p-4 md:p-12 shadow-2xl border border-border relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
+            <div className="flex items-center gap-2 md:gap-4 mb-4 md:mb-8">
+              <div className="p-2 md:p-3 bg-primary/10 rounded-xl md:rounded-2xl">
+                <User className="w-4 h-4 md:w-6 md:h-6 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg md:text-2xl font-black text-foreground tracking-tight">Profile Picture</h2>
+                <p className="text-muted-foreground text-[10px] md:text-sm font-medium">Update your profile photo</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 md:gap-8">
+              <div className="relative">
+                {profile?.avatar_url ? (
+                  <div className="w-20 h-20 md:w-32 md:h-32 rounded-full border-4 border-primary/20 overflow-hidden bg-muted/5">
+                    <img
+                      src={profile.avatar_url}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 md:w-32 md:h-32 rounded-full border-4 border-border flex items-center justify-center bg-muted/10">
+                    <User className="w-10 h-10 md:w-16 md:h-16 text-muted-foreground/30" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1">
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                  id="avatar-upload"
+                />
+                <label
+                  htmlFor="avatar-upload"
+                  className="inline-flex items-center gap-1.5 md:gap-2 px-4 py-2 md:px-6 md:py-3 bg-primary text-white rounded-lg md:rounded-xl hover:bg-primary/90 transition-all font-black text-[10px] md:text-xs uppercase tracking-widest shadow-lg shadow-primary/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {uploadingAvatar ? (
+                    <>
+                      <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin" />
+                      <span className="hidden sm:inline">Uploading...</span>
+                      <span className="sm:hidden">Upload...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-3 h-3 md:w-4 md:h-4" />
+                      <span className="hidden sm:inline">{profile?.avatar_url ? 'Change Photo' : 'Upload Photo'}</span>
+                      <span className="sm:hidden">{profile?.avatar_url ? 'Change' : 'Upload'}</span>
+                    </>
+                  )}
+                </label>
+                <p className="text-[9px] md:text-[10px] text-muted-foreground mt-2 md:mt-3 font-medium uppercase tracking-wider opacity-60">
+                  Recommended: Square image, max 5MB (JPEG, PNG, WebP)
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Appearance Section */}
           <div className="bg-card rounded-2xl md:rounded-[2.5rem] p-4 md:p-12 shadow-2xl border border-border relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
@@ -203,23 +341,33 @@ export default function Settings() {
                   </div>
                   <div className="flex-1">
                     <input
-                      ref={fileInputRef}
+                      ref={logoInputRef}
                       type="file"
                       accept="image/*"
                       onChange={handleLogoUpload}
                       className="hidden"
+                      id="logo-upload"
                     />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-6 md:py-3 bg-primary text-white rounded-lg md:rounded-xl hover:bg-primary/90 transition-all font-black text-[10px] md:text-xs uppercase tracking-widest shadow-lg shadow-primary/20"
+                    <label
+                      htmlFor="logo-upload"
+                      className="inline-flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-6 md:py-3 bg-primary text-white rounded-lg md:rounded-xl hover:bg-primary/90 transition-all font-black text-[10px] md:text-xs uppercase tracking-widest shadow-lg shadow-primary/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Upload className="w-3 h-3 md:w-4 md:h-4" />
-                      <span className="hidden sm:inline">{formData.businessLogo ? 'Change Brand Logo' : 'Set Brand Logo'}</span>
-                      <span className="sm:hidden">{formData.businessLogo ? 'Change' : 'Set Logo'}</span>
-                    </button>
+                      {uploadingLogo ? (
+                        <>
+                          <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin" />
+                          <span className="hidden sm:inline">Uploading...</span>
+                          <span className="sm:hidden">Upload...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-3 h-3 md:w-4 md:h-4" />
+                          <span className="hidden sm:inline">{formData.businessLogo ? 'Change Brand Logo' : 'Set Brand Logo'}</span>
+                          <span className="sm:hidden">{formData.businessLogo ? 'Change' : 'Set Logo'}</span>
+                        </>
+                      )}
+                    </label>
                     <p className="text-[9px] md:text-[10px] text-muted-foreground mt-2 md:mt-3 font-medium uppercase tracking-wider opacity-60">
-                      Recommended: High-res square logo (Max 2MB)
+                      Recommended: High-res square logo, max 5MB (JPEG, PNG, WebP)
                     </p>
                   </div>
                 </div>
@@ -598,11 +746,22 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Final Global Save Action */}
-          <div className="flex justify-start md:justify-end pt-6 md:pt-12">
+          {/* Final Global Save Action & Logout */}
+          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 md:gap-6 pt-6 md:pt-12">
+            <button
+              onClick={signOut}
+              className="group relative flex items-center justify-center gap-2 md:gap-3 px-6 py-3 md:px-8 md:py-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl md:rounded-2xl font-black text-xs md:text-sm uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all shadow-lg hover:shadow-red-500/20 transform hover:-translate-y-1 active:scale-95 overflow-hidden w-full md:w-auto"
+            >
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+              <div className="relative flex items-center gap-2 md:gap-3">
+                <LogOut className="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-12 transition-transform" />
+                <span className="hidden sm:inline">Sign Out</span>
+                <span className="sm:hidden">Logout</span>
+              </div>
+            </button>
             <button
               onClick={handleSave}
-              className="group relative flex items-center gap-2 md:gap-3 px-6 py-3 md:px-12 md:py-5 bg-green-500 text-white rounded-xl md:rounded-2xl font-black text-xs md:text-sm uppercase tracking-[0.2em] hover:bg-green-600 transition-all shadow-[0_20px_40px_rgba(34,197,94,0.3)] hover:shadow-[0_25px_50px_rgba(34,197,94,0.4)] transform hover:-translate-y-1 active:scale-95 overflow-hidden w-full md:w-auto"
+              className="group relative flex items-center justify-center gap-2 md:gap-3 px-6 py-3 md:px-12 md:py-5 bg-green-500 text-white rounded-xl md:rounded-2xl font-black text-xs md:text-sm uppercase tracking-[0.2em] hover:bg-green-600 transition-all shadow-[0_20px_40px_rgba(34,197,94,0.3)] hover:shadow-[0_25px_50px_rgba(34,197,94,0.4)] transform hover:-translate-y-1 active:scale-95 overflow-hidden w-full md:w-auto"
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
               <div className="relative flex items-center gap-2 md:gap-3">

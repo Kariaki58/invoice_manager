@@ -6,7 +6,6 @@ const IMAGE_CACHE = 'invoiceng-images-v2';
 
 const URLS_TO_CACHE = [
   '/',
-  '/manifest.json',
   '/globals.css',
 ];
 
@@ -16,7 +15,17 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
       console.log('[PWA] Precaching static assets');
-      return cache.addAll(URLS_TO_CACHE);
+      // Use addAll with error handling - cache each URL individually
+      return Promise.allSettled(
+        URLS_TO_CACHE.map(url => 
+          cache.add(url).catch(err => {
+            console.warn(`[PWA] Failed to cache ${url}:`, err);
+            return null;
+          })
+        )
+      );
+    }).catch(err => {
+      console.error('[PWA] Cache installation failed:', err);
     })
   );
 });
@@ -51,8 +60,17 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          // Only cache if response is ok and cloneable
+          if (response.ok && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, copy).catch(() => {
+                // Ignore cache errors
+              });
+            }).catch(() => {
+              // Ignore cache errors
+            });
+          }
           return response;
         })
         .catch(() => caches.match(request))
@@ -69,7 +87,17 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
         const fetchPromise = fetch(request).then((networkResponse) => {
-          caches.open(STATIC_CACHE).then((cache) => cache.put(request, networkResponse.clone()));
+          // Only cache if response is ok and cloneable
+          if (networkResponse.ok && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(request, copy).catch(() => {
+                // Ignore cache errors
+              });
+            }).catch(() => {
+              // Ignore cache errors
+            });
+          }
           return networkResponse;
         });
         return cachedResponse || fetchPromise;
@@ -83,8 +111,17 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
         return cachedResponse || fetch(request).then((networkResponse) => {
-          const copy = networkResponse.clone();
-          caches.open(IMAGE_CACHE).then((cache) => cache.put(request, copy));
+          // Only cache if response is ok and cloneable
+          if (networkResponse.ok && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            caches.open(IMAGE_CACHE).then((cache) => {
+              cache.put(request, copy).catch(() => {
+                // Ignore cache errors
+              });
+            }).catch(() => {
+              // Ignore cache errors
+            });
+          }
           return networkResponse;
         });
       })
