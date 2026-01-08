@@ -12,9 +12,23 @@ function InstallAppButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    // Detect device type
+    const userAgent = navigator.userAgent;
+    const ios = /iPhone|iPad|iPod/.test(userAgent);
+    const android = /Android/.test(userAgent);
+    const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    
+    setIsIOS(ios);
+    setIsAndroid(android);
+    setIsMobile(mobile);
 
     // Check if already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -43,6 +57,7 @@ function InstallAppButton() {
 
   const handleInstall = async () => {
     if (deferredPrompt) {
+      // Android/Chrome with beforeinstallprompt support
       try {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
@@ -55,14 +70,8 @@ function InstallAppButton() {
         console.error('Installation error:', error);
       }
     } else {
-      // Fallback instructions
-      if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-        alert('To install:\n1. Tap the Share button (square with arrow)\n2. Select "Add to Home Screen"\n3. Tap "Add"');
-      } else if (/Android/.test(navigator.userAgent)) {
-        alert('To install:\n1. Tap the menu (3 dots)\n2. Select "Install app" or "Add to Home screen"\n3. Tap "Install"');
-      } else {
-        alert('To install:\n1. Look for the install icon in your browser\'s address bar\n2. Or use your browser\'s menu to find "Install" option');
-      }
+      // Show instructions for mobile or browsers without beforeinstallprompt
+      setShowInstructions(true);
     }
   };
 
@@ -90,6 +99,62 @@ function InstallAppButton() {
     );
   }
 
+  if (showInstructions) {
+    return (
+      <div className="space-y-4">
+        {isIOS ? (
+          <div className="p-4 md:p-6 bg-primary/5 border border-primary/20 rounded-xl md:rounded-2xl space-y-3">
+            <h3 className="font-black text-foreground text-sm md:text-base">Install on iOS (iPhone/iPad)</h3>
+            <ol className="space-y-2 text-xs md:text-sm text-muted-foreground font-medium list-decimal list-inside">
+              <li>Tap the <strong className="text-foreground">Share button</strong> (square with arrow pointing up) at the bottom of your screen</li>
+              <li>Scroll down and tap <strong className="text-foreground">"Add to Home Screen"</strong></li>
+              <li>Tap <strong className="text-foreground">"Add"</strong> in the top right corner</li>
+            </ol>
+            <button
+              onClick={() => setShowInstructions(false)}
+              className="mt-4 px-4 py-2 bg-primary text-white rounded-lg font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-colors"
+            >
+              Got it
+            </button>
+          </div>
+        ) : isAndroid ? (
+          <div className="p-4 md:p-6 bg-primary/5 border border-primary/20 rounded-xl md:rounded-2xl space-y-3">
+            <h3 className="font-black text-foreground text-sm md:text-base">Install on Android</h3>
+            <ol className="space-y-2 text-xs md:text-sm text-muted-foreground font-medium list-decimal list-inside">
+              <li>Tap the <strong className="text-foreground">menu button</strong> (3 dots) in your browser</li>
+              <li>Select <strong className="text-foreground">"Install app"</strong> or <strong className="text-foreground">"Add to Home screen"</strong></li>
+              <li>Tap <strong className="text-foreground">"Install"</strong> to confirm</li>
+            </ol>
+            <p className="text-xs text-muted-foreground/70 italic mt-2">
+              Note: Some browsers may show an install banner automatically. Look for it at the top or bottom of your screen.
+            </p>
+            <button
+              onClick={() => setShowInstructions(false)}
+              className="mt-4 px-4 py-2 bg-primary text-white rounded-lg font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-colors"
+            >
+              Got it
+            </button>
+          </div>
+        ) : (
+          <div className="p-4 md:p-6 bg-primary/5 border border-primary/20 rounded-xl md:rounded-2xl space-y-3">
+            <h3 className="font-black text-foreground text-sm md:text-base">Install on Desktop</h3>
+            <ol className="space-y-2 text-xs md:text-sm text-muted-foreground font-medium list-decimal list-inside">
+              <li>Look for the <strong className="text-foreground">install icon</strong> in your browser's address bar (usually appears on the right)</li>
+              <li>Or go to your browser's menu and look for <strong className="text-foreground">"Install invoiceme"</strong> or <strong className="text-foreground">"Install app"</strong></li>
+              <li>Click <strong className="text-foreground">"Install"</strong> to add to your device</li>
+            </ol>
+            <button
+              onClick={() => setShowInstructions(false)}
+              className="mt-4 px-4 py-2 bg-primary text-white rounded-lg font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-colors"
+            >
+              Got it
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <button
       onClick={handleInstall}
@@ -98,7 +163,12 @@ function InstallAppButton() {
       <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
       <div className="relative flex items-center gap-2 md:gap-3">
         <Download className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform" />
-        <span>Install invoiceme</span>
+        <span>
+          {isMobile 
+            ? (isIOS ? 'Show iOS Instructions' : isAndroid ? 'Show Android Instructions' : 'Install invoiceme')
+            : 'Install invoiceme'
+          }
+        </span>
       </div>
     </button>
   );
