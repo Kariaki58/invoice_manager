@@ -121,8 +121,8 @@ export default function Dashboard() {
               <div className="min-w-0 flex-1">
                 <span className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Projected Revenue</span>
                 <span className="text-2xl md:text-5xl font-black text-primary tracking-tighter break-words">
-                  ₦{(totalPaid + totalUnpaid + totalOverdue).toLocaleString()}
-                </span>
+                ₦{(totalPaid + totalUnpaid + totalOverdue).toLocaleString()}
+              </span>
               </div>
               <div className="md:text-right border-l-4 border-primary pl-3 md:border-l-0 md:pl-0 flex-shrink-0">
                 <span className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Payment Ratio</span>
@@ -162,13 +162,13 @@ export default function Dashboard() {
           <div className="bg-card rounded-2xl md:rounded-4xl shadow-2xl border border-border mb-6 md:mb-10 overflow-hidden">
           <div className="p-3 md:p-8 border-b border-border flex items-center justify-between bg-background/20 gap-2">
             <h2 className="text-sm md:text-xl font-black text-foreground tracking-tight">Recent Activity</h2>
-            <Link
-              href="/invoices"
+              <Link
+                href="/invoices"
               className="px-3 py-1.5 md:px-4 md:py-2 bg-primary/10 text-primary rounded-lg md:rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition-all transform hover:scale-105 flex-shrink-0"
-            >
+              >
               <span className="hidden sm:inline">Analyze All</span>
               <span className="sm:hidden">All</span>
-            </Link>
+              </Link>
           </div>
           <div className="divide-y divide-border">
             {recentInvoices.length === 0 ? (
@@ -219,8 +219,8 @@ export default function Dashboard() {
                       </div>
                       <div className="md:hidden">
                         <p className="text-base font-black text-foreground tracking-tighter">
-                          ₦{invoice.total.toLocaleString()}
-                        </p>
+                        ₦{invoice.total.toLocaleString()}
+                      </p>
                       </div>
                       <div className="w-8 h-8 md:w-10 md:h-10 bg-primary/10 rounded-lg md:rounded-xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all transform group-hover:translate-x-1">
                         <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />

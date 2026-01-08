@@ -278,7 +278,7 @@ export default function Settings() {
           </div>
 
           {/* Appearance Section */}
-          <div className="bg-card rounded-2xl md:rounded-[2.5rem] p-4 md:p-12 shadow-2xl border border-border relative overflow-hidden group">
+          {/* <div className="bg-card rounded-2xl md:rounded-[2.5rem] p-4 md:p-12 shadow-2xl border border-border relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
             <div className="flex items-center justify-between gap-3 md:gap-4">
               <div className="flex items-center gap-2 md:gap-4">
@@ -292,7 +292,7 @@ export default function Settings() {
               </div>
               <ThemeToggle />
             </div>
-          </div>
+          </div> */}
           {/* Business Profile */}
           <div className="bg-card rounded-2xl md:rounded-[2.5rem] p-4 md:p-12 shadow-2xl border border-border relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
@@ -434,9 +434,9 @@ export default function Settings() {
                   className="w-full px-3 py-2.5 md:px-5 md:py-4 bg-muted/5 border border-border rounded-lg md:rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-black text-sm md:text-base text-foreground appearance-none ring-offset-background"
                 >
                   <option value="NGN">₦ Naira (NGN)</option>
-                  <option value="USD">$ US Dollar (USD)</option>
+                  {/* <option value="USD">$ US Dollar (USD)</option>
                   <option value="GBP">£ British Pound (GBP)</option>
-                  <option value="EUR">€ Euro (EUR)</option>
+                  <option value="EUR">€ Euro (EUR)</option> */}
                 </select>
                 <p className="text-[9px] md:text-[10px] text-muted-foreground mt-3 md:mt-4 font-bold uppercase tracking-wider leading-relaxed opacity-60">
                   This will be the base currency for all calculations and summaries.

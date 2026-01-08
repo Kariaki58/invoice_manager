@@ -79,6 +79,12 @@ html {
   z-index: 50;
 }
 
+/* .invoice-header {
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  transition: background 0.3s ease;
+} */
+
 @media (min-width: 768px) {
   #install-prompt {
     bottom: auto;
@@ -87,3 +93,4 @@ html {
     border-bottom: 1px solid var(--border);
   }
 }
+
