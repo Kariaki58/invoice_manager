@@ -89,31 +89,27 @@ export default function InstallPrompt() {
   }, [deferredPrompt, isInstalled]);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) {
-      // Fallback for iOS or browsers that don't support beforeinstallprompt
-      if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-        alert('To install this app on your iOS device, tap the Share button and then "Add to Home Screen".');
-      } else {
-        alert('To install this app, look for the install icon in your browser\'s address bar.');
+    if (deferredPrompt) {
+      // Directly trigger the install prompt
+      try {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        
+        if (outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+          localStorage.setItem('pwa-installed', 'true');
+          setIsInstalled(true);
+        }
+        
+        setDeferredPrompt(null);
+        setShowPrompt(false);
+      } catch (error) {
+        console.error('Error during installation:', error);
+        setShowPrompt(false);
       }
-      setShowPrompt(false);
-      return;
-    }
-
-    try {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
-        console.log('User accepted the install prompt');
-        localStorage.setItem('pwa-installed', 'true');
-        setIsInstalled(true);
-      }
-      
-      setDeferredPrompt(null);
-      setShowPrompt(false);
-    } catch (error) {
-      console.error('Error during installation:', error);
+    } else {
+      // If beforeinstallprompt is not available, hide the prompt
+      // The user can use the install button in settings or browser's native install option
       setShowPrompt(false);
     }
   };

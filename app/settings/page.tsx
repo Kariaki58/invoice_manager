@@ -57,7 +57,7 @@ function InstallAppButton() {
 
   const handleInstall = async () => {
     if (deferredPrompt) {
-      // Android/Chrome with beforeinstallprompt support
+      // Directly trigger the install prompt - no alerts, just install
       try {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
@@ -68,10 +68,21 @@ function InstallAppButton() {
         setDeferredPrompt(null);
       } catch (error) {
         console.error('Installation error:', error);
+        // If prompt fails, show instructions as fallback
+        if (isMobile) {
+          setShowInstructions(true);
+        }
       }
     } else {
-      // Show instructions for mobile or browsers without beforeinstallprompt
-      setShowInstructions(true);
+      // For iOS or browsers without beforeinstallprompt, show instructions UI
+      // (iOS doesn't support programmatic installation)
+      if (isMobile) {
+        setShowInstructions(true);
+      } else {
+        // Desktop: Try to find and click browser's install button programmatically
+        // This is a fallback - most modern browsers will show install icon automatically
+        console.log('Install prompt not available. Please use your browser\'s install option.');
+      }
     }
   };
 
