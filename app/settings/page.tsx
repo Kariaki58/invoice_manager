@@ -1,11 +1,108 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useInvoices, AccountDetails, Settings as SettingsType } from '../context/InvoiceContext';
 import { useAuth } from '../context/AuthContext';
-import { Upload, Save, CreditCard, Building2, Plus, Trash2, Edit2, Check, X, Wallet, Monitor, User, Loader2, LogOut } from 'lucide-react';
+import { Upload, Save, CreditCard, Building2, Plus, Trash2, Edit2, Check, X, Wallet, Monitor, User, Loader2, LogOut, Download } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import { uploadImage } from '@/lib/cloudinary';
+
+// Install App Button Component
+function InstallAppButton() {
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [isSupported, setIsSupported] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // Check if already installed
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    const nav = window.navigator as any;
+    const isPWA = nav.standalone || isStandalone;
+    
+    if (isPWA) {
+      setIsInstalled(true);
+      return;
+    }
+
+    // Check if installation is supported
+    setIsSupported('serviceWorker' in navigator);
+
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    if (deferredPrompt) {
+      try {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          localStorage.setItem('pwa-installed', 'true');
+          setIsInstalled(true);
+        }
+        setDeferredPrompt(null);
+      } catch (error) {
+        console.error('Installation error:', error);
+      }
+    } else {
+      // Fallback instructions
+      if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+        alert('To install:\n1. Tap the Share button (square with arrow)\n2. Select "Add to Home Screen"\n3. Tap "Add"');
+      } else if (/Android/.test(navigator.userAgent)) {
+        alert('To install:\n1. Tap the menu (3 dots)\n2. Select "Install app" or "Add to Home screen"\n3. Tap "Install"');
+      } else {
+        alert('To install:\n1. Look for the install icon in your browser\'s address bar\n2. Or use your browser\'s menu to find "Install" option');
+      }
+    }
+  };
+
+  if (isInstalled) {
+    return (
+      <div className="p-4 md:p-6 bg-green-500/10 border border-green-500/20 rounded-xl md:rounded-2xl">
+        <div className="flex items-center gap-3">
+          <Check className="w-5 h-5 md:w-6 md:h-6 text-green-500" />
+          <div>
+            <p className="font-black text-green-500 text-sm md:text-base">App Installed</p>
+            <p className="text-xs md:text-sm text-muted-foreground">invoiceme is installed on your device</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isSupported) {
+    return (
+      <div className="p-4 md:p-6 bg-muted/5 border border-border rounded-xl md:rounded-2xl">
+        <p className="text-sm md:text-base text-muted-foreground font-medium">
+          Installation is not supported in this browser. Please use Chrome, Edge, or Safari.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={handleInstall}
+      className="group relative flex items-center justify-center gap-2 md:gap-3 px-6 py-3 md:px-8 md:py-4 bg-primary text-white rounded-xl md:rounded-2xl font-black text-xs md:text-sm uppercase tracking-[0.2em] hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transform hover:-translate-y-1 active:scale-95 overflow-hidden w-full"
+    >
+      <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+      <div className="relative flex items-center gap-2 md:gap-3">
+        <Download className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform" />
+        <span>Install invoiceme</span>
+      </div>
+    </button>
+  );
+}
 
 export default function Settings() {
   const { settings, updateSettings, addAccount, updateAccount, deleteAccount, setDefaultAccount, loading } = useInvoices();
@@ -744,6 +841,21 @@ export default function Settings() {
                 <strong>Deployment Note:</strong> Enterprise payment gateway integrations require active API keys and secure backend synchronization. This interface demonstrates the available settlement workflows.
               </p>
             </div>
+          </div>
+
+          {/* Install App Section */}
+          <div className="bg-card rounded-2xl md:rounded-[2.5rem] p-4 md:p-12 shadow-2xl border border-border relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
+            <div className="flex items-center gap-2 md:gap-4 mb-4 md:mb-8">
+              <div className="p-2 md:p-3 bg-primary/10 rounded-xl md:rounded-2xl">
+                <Download className="w-4 h-4 md:w-6 md:h-6 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg md:text-2xl font-black text-foreground tracking-tight">Install App</h2>
+                <p className="text-muted-foreground text-[10px] md:text-sm font-medium">Install invoiceme on your device for quick access</p>
+              </div>
+            </div>
+            <InstallAppButton />
           </div>
 
           {/* Final Global Save Action & Logout */}
