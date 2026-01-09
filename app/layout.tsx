@@ -63,7 +63,7 @@ export default function RootLayout({
         <InvoiceProvider>
               <ServiceWorkerRegistration />
               <PWAUpdatePrompt />
-              <InstallPrompt />
+              {/* <InstallPrompt /> */}
               <div className="flex min-h-screen bg-background transition-colors">
             <Navigation />
             <main className="flex-1 pb-20 md:pb-0 md:ml-20">
