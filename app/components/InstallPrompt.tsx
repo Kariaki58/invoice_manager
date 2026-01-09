@@ -3,11 +3,19 @@
 import { useState, useEffect } from 'react';
 import { X, Download } from 'lucide-react';
 
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
+
 export default function InstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [canInstall, setCanInstall] = useState(false);
 
   useEffect(() => {
     // Check if already installed
@@ -15,11 +23,11 @@ export default function InstallPrompt() {
       // Check for standalone mode (iOS)
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
       // Check if running as PWA (iOS-specific property)
-      const nav = window.navigator as any;
-      const isPWA = nav.standalone || isStandalone;
+      const isPWA = (window.navigator as any).standalone || isStandalone;
       
       if (isPWA) {
-        setIsInstalled(true);
+        // Use timeout to avoid synchronous setState in effect
+        setTimeout(() => setIsInstalled(true), 0);
         return;
       }
 
@@ -50,8 +58,7 @@ export default function InstallPrompt() {
 
     const handler = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
-      setCanInstall(true);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       // Show prompt after a short delay to ensure page is loaded
       setTimeout(() => {
         setShowPrompt(true);
@@ -68,7 +75,6 @@ export default function InstallPrompt() {
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.getRegistration().then((registration) => {
             if (registration) {
-              setCanInstall(true);
               // Show manual install prompt after 5 seconds if beforeinstallprompt hasn't fired
               setTimeout(() => {
                 if (!deferredPrompt && !isInstalled) {
@@ -90,13 +96,11 @@ export default function InstallPrompt() {
 
   const handleInstall = async () => {
     if (deferredPrompt) {
-      // Directly trigger the install prompt
       try {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         
         if (outcome === 'accepted') {
-          console.log('User accepted the install prompt');
           localStorage.setItem('pwa-installed', 'true');
           setIsInstalled(true);
         }
@@ -107,55 +111,48 @@ export default function InstallPrompt() {
         console.error('Error during installation:', error);
         setShowPrompt(false);
       }
-    } else {
-      // If beforeinstallprompt is not available, hide the prompt
-      // The user can use the install button in settings or browser's native install option
-      setShowPrompt(false);
     }
   };
 
   const handleDismiss = () => {
     setShowPrompt(false);
-    setDeferredPrompt(null);
-    // Remember dismissal for 7 days
+    // Don't clear deferredPrompt here, just hide the UI
+    // Remember dismissal for 24 hours instead of 7 days for better visibility during testing
     localStorage.setItem('pwa-prompt-dismissed', Date.now().toString());
   };
 
   if (isInstalled) return null;
-  if (!showPrompt && !canInstall) return null;
-  
-  // Show prompt even if beforeinstallprompt hasn't fired (manual install option)
-  if (!showPrompt && canInstall && !deferredPrompt) {
-    // Don't show yet, wait for user interaction or the event
-    return null;
-  }
+  if (!showPrompt) return null;
 
   return (
-    <div className="fixed bottom-20 md:bottom-auto md:top-0 left-0 right-0 bg-card border-t md:border-b border-border shadow-2xl z-50 p-4 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white font-black text-sm">
-            IN
+    <div className="fixed bottom-24 left-4 right-4 md:bottom-8 md:right-8 md:left-auto md:w-96 bg-card border border-border shadow-2xl z-50 p-5 rounded-2xl backdrop-blur-xl animate-in slide-in-from-bottom-5 duration-500">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-primary/20">
+              IN
+            </div>
+            <div>
+              <p className="font-black text-foreground text-base">Install invoiceme</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">Install our app for a better experience and offline access.</p>
+            </div>
           </div>
-          <div>
-            <p className="font-black text-foreground text-sm md:text-base">Install invoiceme</p>
-            <p className="text-xs md:text-sm text-muted-foreground">Add to home screen for quick access</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleInstall}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all font-black text-xs md:text-sm shadow-lg shadow-primary/30 hover:scale-105 active:scale-95"
-          >
-            <Download className="w-4 h-4" />
-            Install
-          </button>
           <button
             onClick={handleDismiss}
-            className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50"
+            className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted/50"
             aria-label="Dismiss"
           >
             <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleInstall}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <Download className="w-4 h-4" />
+            Add to Home Screen
           </button>
         </div>
       </div>
