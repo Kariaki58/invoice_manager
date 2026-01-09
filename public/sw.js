@@ -6,8 +6,7 @@ const IMAGE_CACHE = 'invoiceng-images-v2';
 
 const URLS_TO_CACHE = [
   '/',
-  '/icon-192.png',
-  '/icon-512.png',
+  '/globals.css',
 ];
 
 // 1. Install Event - Immediate takeover
@@ -53,6 +52,7 @@ self.addEventListener('activate', (event) => {
 // 3. Fetch Event - Intelligent Caching Strategy
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  const url = new URL(request.url);
 
   // Strategy A: Network-First for HTML/Navigation
   // This ensures users always get the latest build if they are online.
