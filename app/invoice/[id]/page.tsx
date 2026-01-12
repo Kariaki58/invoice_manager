@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
-import { useInvoices } from '../../context/InvoiceContext';
+import { useInvoices, InvoiceItem } from '../../context/InvoiceContext';
 import { format } from 'date-fns';
 import { Send, MessageSquare, Mail, Copy, Check, ArrowLeft, Printer, Download } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
@@ -246,16 +246,167 @@ interface SpotifyGradient {
 export default function InvoicePreview() {
   const router = useRouter();
   const params = useParams();
-  const { getInvoice, settings, getAccount, loading } = useInvoices();
-  const invoice = getInvoice(params.id as string);
+  const { getInvoice, settings, getAccount, loading: contextLoading } = useInvoices();
+  // State for public invoice data
+  const [publicInvoice, setPublicInvoice] = useState<any>(null);
+  const [publicBusinessDetails, setPublicBusinessDetails] = useState<any>(null);
+  const [publicAccountDetails, setPublicAccountDetails] = useState<any>(null);
+  const [fetchingPublic, setFetchingPublic] = useState(false);
+  const [pdfGenerating, setPdfGenerating] = useState(false);
+
+  // Try to get invoice from context first, then fall back to public state
+  const invoice = getInvoice(params.id as string) || publicInvoice;
+  // Use settings from context or public state
+  const displaySettings = settings || {
+    businessName: publicBusinessDetails?.business_name,
+    businessLogo: publicBusinessDetails?.business_logo,
+    currency: publicBusinessDetails?.currency || 'NGN',
+    // ... default fallbacks
+  };
+  
+  const loading = contextLoading || fetchingPublic;
+
+  // Fetch public invoice if not found in context
+  useEffect(() => {
+    const fetchPublicData = async () => {
+      // Only fetch if not already present locally or in public state
+      if (!getInvoice(params.id as string) && !fetchingPublic && !publicInvoice) {
+        setFetchingPublic(true);
+        try {
+          // Dynamic import to avoid server-side bundle issues if any, though likely safe to import normally
+          const { getPublicInvoice } = await import('@/app/actions/invoice');
+          const result = await getPublicInvoice(params.id as string);
+          if (result) {
+            setPublicInvoice(result.invoice);
+            setPublicBusinessDetails(result.businessDetails);
+            setPublicAccountDetails(result.accountDetails);
+          }
+        } catch (error) {
+          console.error('Failed to fetch public invoice', error);
+        } finally {
+          setFetchingPublic(false);
+        }
+      }
+    };
+    
+    // Only fetch if we're not loading context
+    if (!contextLoading) {
+        fetchPublicData();
+    }
+  }, [params.id, contextLoading, getInvoice, fetchingPublic, publicInvoice]);
+  
   const [copied, setCopied] = useState(false);
   const [accountCopied, setAccountCopied] = useState(false);
   const [spotifyGradient, setSpotifyGradient] = useState<SpotifyGradient | null>(null);
-  const [isHovering, setIsHovering] = useState(false);
   const [isLoadingColor, setIsLoadingColor] = useState(true);
   const headerRef = useRef<HTMLDivElement>(null);
+  // Ref for PDF generation
+  const invoiceContainerRef = useRef<HTMLDivElement>(null);
   
-  const accountDetails = invoice?.accountId ? getAccount(invoice.accountId) : null;
+  // Handle account details - check context first, then public fetch result
+  // If getAccount exists and returns a value, use it. Otherwise try publicAccountDetails.
+  const accountDetails = (invoice?.accountId && getAccount && getAccount(invoice.accountId)) 
+    || publicAccountDetails;
+
+  // Handle PDF Download - FIXED VERSION
+  const handleDownloadPDF = async () => {
+    if (!invoice || !invoiceContainerRef.current) return;
+    setPdfGenerating(true);
+    
+    try {
+      // Use jsPDF directly instead of html2pdf.js for better compatibility
+      const { jsPDF } = await import('jspdf');
+      const html2canvas = (await import('html2canvas')).default;
+      
+      const element = invoiceContainerRef.current;
+      
+      // Add print-specific styling temporarily
+      const originalStyles: string[] = [];
+      const elements = element.querySelectorAll('*');
+      elements.forEach(el => {
+        if (el instanceof HTMLElement) {
+          originalStyles.push(el.style.cssText);
+          // Ensure elements are visible for PDF
+          el.style.boxShadow = 'none';
+          el.style.filter = 'none';
+          el.style.transform = 'none';
+          el.style.transition = 'none';
+          el.style.position = 'static';
+        }
+      });
+      
+      // Capture the element
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        removeContainer: true,
+        onclone: (clonedDoc) => {
+          // Remove interactive elements from the clone
+          const buttons = clonedDoc.querySelectorAll('.hide-on-print, button');
+          buttons.forEach(button => {
+            if (button instanceof HTMLElement) {
+              button.style.display = 'none';
+            }
+          });
+          
+          // Ensure proper background colors
+          const header = clonedDoc.querySelector('.invoice-header');
+          if (header instanceof HTMLElement && spotifyGradient) {
+            header.style.background = spotifyGradient.baseColor;
+          }
+        }
+      });
+      
+      // Restore original styles
+      elements.forEach((el, index) => {
+        if (el instanceof HTMLElement) {
+          el.style.cssText = originalStyles[index];
+        }
+      });
+      
+      // Create PDF
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      // Add additional pages if content is too long
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      // Save the PDF
+      pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
+      
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      alert(`Failed to generate PDF: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setPdfGenerating(false);
+    }
+  };
+
+  // Alternative PDF generation using browser print
+  const handlePrint = () => {
+    window.print();
+  };
 
   // Handle account number copy
   const handleCopyAccount = () => {
@@ -271,7 +422,9 @@ export default function InvoicePreview() {
     const applyGradientFromLogo = async () => {
       setIsLoadingColor(true);
       
-      if (!settings?.businessLogo) {
+      const logoUrl = displaySettings?.businessLogo;
+      
+      if (!logoUrl) {
         // Default Spotify green gradient as fallback
         setSpotifyGradient({
           gradient: 'linear-gradient(135deg, #1db954 0%, #1ed760 30%, #1ed760 50%, #1fdf64 70%, #1ff167 100%)',
@@ -290,7 +443,7 @@ export default function InvoicePreview() {
       }
 
       try {
-        const colorInfo = await extractDominantColor(settings.businessLogo);
+        const colorInfo = await extractDominantColor(logoUrl);
         const gradient = generateSpotifyGradient(colorInfo.color);
         setSpotifyGradient(gradient);
       } catch (error) {
@@ -312,7 +465,7 @@ export default function InvoicePreview() {
     };
 
     applyGradientFromLogo();
-  }, [settings?.businessLogo]);
+  }, [displaySettings?.businessLogo]);
 
   // Mouse move effect for interactive gradient
   useEffect(() => {
@@ -335,7 +488,7 @@ export default function InvoicePreview() {
   }, []);
 
   // Loading state
-  if (loading || isLoadingColor) {
+  if (loading || (isLoadingColor && !spotifyGradient && !fetchingPublic)) {
     return (
       <div className="min-h-screen bg-background p-4 md:p-8 flex items-center justify-center">
         <div className="text-center">
@@ -351,7 +504,7 @@ export default function InvoicePreview() {
     return (
       <div className="min-h-screen bg-background p-4 md:p-8 flex items-center justify-center">
         <div className="text-center px-4">
-          <p className="text-base md:text-xl text-muted-foreground mb-4 md:mb-6 font-bold">Invoice not found</p>
+          <p className="text-base md:text-xl text-muted-foreground mb-4 md:mb-6 font-bold">Invoice not found or deleted.</p>
           <button
             onClick={() => router.push('/invoices')}
             className="px-6 py-3 md:px-8 md:py-4 bg-primary text-white rounded-xl md:rounded-2xl font-black text-sm md:text-base hover:bg-primary/90 transition-all shadow-xl shadow-primary/25"
@@ -362,7 +515,10 @@ export default function InvoicePreview() {
       </div>
     );
   }
-
+  
+  // NOTE: If public, we might not have `settings` fully populated with accounts if the joined fetch didn't get them.
+  // For basic viewing, we need business name and logo which we have.
+  
   // Invoice link for sharing
   const invoiceLink = typeof window !== 'undefined' 
     ? `${window.location.origin}/invoice/${invoice.id}`
@@ -393,7 +549,7 @@ export default function InvoicePreview() {
 
   // Handle Email sharing
   const handleEmail = () => {
-    const subject = encodeURIComponent(`Invoice ${invoice.invoiceNumber} from ${settings?.businessName || 'Your Business'}`);
+    const subject = encodeURIComponent(`Invoice ${invoice.invoiceNumber} from ${displaySettings?.businessName || 'Your Business'}`);
     const body = encodeURIComponent(
       `Dear ${invoice.clientName},\n\nPlease find attached your invoice ${invoice.invoiceNumber}.\n\nTotal Amount: ₦${(invoice.total || 0).toLocaleString('en-NG')}\nDue Date: ${format(new Date(invoice.dueDate), 'MMMM dd, yyyy')}\n\nView invoice: ${invoiceLink}\n\nThank you for your business!`
     );
@@ -413,8 +569,41 @@ export default function InvoicePreview() {
 
   return (
     <div className="min-h-screen bg-background p-3 md:p-8 transition-colors overflow-x-hidden">
-      {/* CSS for interactive effects */}
+      {/* Print styles */}
       <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          
+          .print-container,
+          .print-container * {
+            visibility: visible;
+          }
+          
+          .print-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            box-shadow: none !important;
+            border: none !important;
+          }
+          
+          .hide-on-print,
+          .hide-on-print * {
+            display: none !important;
+          }
+          
+          .invoice-header {
+            background: ${spotifyGradient?.baseColor || '#7c3aed'} !important;
+          }
+          
+          button {
+            display: none !important;
+          }
+        }
+        
         .invoice-header {
           --mouse-x: 50%;
           --mouse-y: 50%;
@@ -473,7 +662,7 @@ export default function InvoicePreview() {
 
       <div className="max-w-4xl mx-auto w-full">
         {/* Header Actions with dynamic colors */}
-        <div className="mb-4 md:mb-10 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="mb-4 md:mb-10 flex flex-col gap-3 md:flex-row md:items-center md:justify-between hide-on-print">
           <button
             onClick={() => router.back()}
             className="inline-flex items-center gap-1.5 md:gap-2 text-muted-foreground hover:text-primary transition-colors font-bold group text-sm md:text-base"
@@ -496,8 +685,8 @@ export default function InvoicePreview() {
             >
               {copied ? (
                 <>
-                  <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-500" />
-                  <span className="text-green-500 text-xs md:text-sm">Copied!</span>
+                  <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#22c55e]" />
+                  <span className="text-[#22c55e] text-xs md:text-sm">Copied!</span>
                 </>
               ) : (
                 <>
@@ -543,7 +732,7 @@ export default function InvoicePreview() {
                 <Mail className="w-4 h-4 md:w-5 md:h-5" />
               </button>
               <button
-                onClick={() => window.print()}
+                onClick={handlePrint}
                 className="flex items-center justify-center p-2 md:p-3 rounded-lg md:rounded-xl hover:scale-105 transition-all"
                 title="Print"
                 style={{
@@ -556,7 +745,9 @@ export default function InvoicePreview() {
                 <Printer className="w-4 h-4 md:w-5 md:h-5" />
               </button>
               <button
-                className="flex items-center justify-center p-2 md:p-3 rounded-lg md:rounded-xl hover:scale-105 transition-all"
+                onClick={handleDownloadPDF}
+                disabled={pdfGenerating}
+                className="flex items-center justify-center p-2 md:p-3 rounded-lg md:rounded-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Download PDF"
                 style={{
                   backgroundColor: spotifyGradient ? `${spotifyGradient.baseColor}08` : 'rgba(124, 58, 237, 0.08)',
@@ -565,14 +756,18 @@ export default function InvoicePreview() {
                   color: spotifyGradient?.baseColor || '#7c3aed',
                 }}
               >
-                <Download className="w-4 h-4 md:w-5 md:h-5" />
+                 {pdfGenerating ? (
+                    <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                 ) : (
+                    <Download className="w-4 h-4 md:w-5 md:h-5" />
+                 )}
               </button>
             </div>
           </div>
         </div>
 
         {/* Invoice Preview */}
-        <div className="bg-card rounded-2xl md:rounded-[2.5rem] shadow-2xl border border-border overflow-hidden">
+        <div ref={invoiceContainerRef} className="bg-card rounded-2xl md:rounded-[2.5rem] shadow-2xl border border-border overflow-hidden print-container">
           {/* Spotify-like Header with Dynamic Gradient */}
           <div 
             ref={headerRef}
@@ -582,8 +777,6 @@ export default function InvoicePreview() {
               position: 'relative',
               color: '#ffffff',
             }}
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
           >
             {/* Subtle overlay texture */}
             <div 
@@ -605,7 +798,7 @@ export default function InvoicePreview() {
               {/* Left: Logo and Business Name */}
               <div className="min-w-0 flex-1 flex items-start gap-4 md:gap-6">
                 {/* Animated Logo Container */}
-                {settings?.businessLogo ? (
+                {displaySettings?.businessLogo ? (
                   <div className="flex-shrink-0 logo-container">
                     <div 
                       className="rounded-2xl md:rounded-3xl p-2 md:p-3 shadow-2xl transition-all duration-500 group-hover:scale-105 group-hover:rotate-3 group-hover:shadow-3xl"
@@ -620,9 +813,10 @@ export default function InvoicePreview() {
                         border: '1px solid rgba(255,255,255,0.15)',
                       }}
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={settings.businessLogo}
-                        alt={settings.businessName || 'Business Logo'}
+                        src={displaySettings.businessLogo}
+                        alt={displaySettings.businessName || 'Business Logo'}
                         className="w-20 h-20 md:w-28 md:h-28 rounded-xl md:rounded-2xl object-cover transition-transform duration-500 group-hover:scale-105"
                         onError={(e) => {
                           console.error('Logo failed to load');
@@ -647,7 +841,7 @@ export default function InvoicePreview() {
                       }}
                     >
                       <span className="text-3xl md:text-5xl font-black text-white">
-                        {(settings?.businessName || 'B').charAt(0).toUpperCase()}
+                        {(displaySettings?.businessName || 'B').charAt(0).toUpperCase()}
                       </span>
                     </div>
                   </div>
@@ -658,7 +852,7 @@ export default function InvoicePreview() {
                   <h1 
                     className="text-xl md:text-5xl font-black mb-1 md:mb-3 tracking-tighter leading-tight text-white drop-shadow-lg transition-all duration-500 group-hover:tracking-tight"
                   >
-                    {settings?.businessName || 'Your Business'}
+                    {displaySettings?.businessName || 'Your Business'}
                   </h1>
                   <p 
                     className="font-bold uppercase tracking-[0.25em] text-[10px] md:text-sm text-white/90 opacity-90 transition-all duration-500 group-hover:opacity-100"
@@ -848,7 +1042,7 @@ export default function InvoicePreview() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {invoice.items.map((item) => {
+                      {invoice.items.map((item: InvoiceItem) => {
                         const quantity = (item.quantity != null && !isNaN(item.quantity)) ? Number(item.quantity) : 0;
                         const price = (item.price != null && !isNaN(item.price)) ? Number(item.price) : 0;
                         const itemTotal = (item.total != null && !isNaN(item.total))
@@ -945,7 +1139,7 @@ export default function InvoicePreview() {
         </div>
 
         {/* Footer with dynamic color */}
-        <div className="mt-6 md:mt-12 text-center pb-20 md:pb-8">
+        <div className="mt-6 md:mt-12 text-center pb-20 md:pb-8 hide-on-print">
           <p className="text-muted-foreground font-medium text-xs md:text-sm">
             Generated with invoiceme
           </p>

@@ -925,7 +925,7 @@ export default function Settings() {
           </div>
 
           {/* Install App Section */}
-          <div className="bg-card rounded-2xl md:rounded-[2.5rem] p-4 md:p-12 shadow-2xl border border-border relative overflow-hidden group">
+          {/* <div className="bg-card rounded-2xl md:rounded-[2.5rem] p-4 md:p-12 shadow-2xl border border-border relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
             <div className="flex items-center gap-2 md:gap-4 mb-4 md:mb-8">
               <div className="p-2 md:p-3 bg-primary/10 rounded-xl md:rounded-2xl">
@@ -937,7 +937,7 @@ export default function Settings() {
               </div>
             </div>
             <InstallAppButton />
-          </div>
+          </div> */}
 
           {/* Final Global Save Action & Logout */}
           <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 md:gap-6 pt-6 md:pt-12">

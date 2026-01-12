@@ -121,8 +121,24 @@ export default function InvoiceList() {
                     <span className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest block">{invoice.invoiceNumber}</span>
                     <h3 className="text-sm md:text-lg font-black text-foreground tracking-tight mt-0.5 md:mt-1 truncate">{invoice.clientName}</h3>
                   </div>
-                  <div className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-widest flex-shrink-0 ml-2 ${getStatusStyles(invoice.status)}`}>
-                    {invoice.status}
+                  <div 
+                    onClick={(e) => e.preventDefault()}
+                    className="relative z-10"
+                  >
+                    <select
+                      value={invoice.status}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        // Optimistic update locally if needed, but the context handles it
+                        handleStatusChange(invoice.id, e.target.value as Invoice['status']);
+                      }}
+                      className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-widest flex-shrink-0 ml-2 appearance-none cursor-pointer border-0 ring-0 focus:ring-0 ${getStatusStyles(invoice.status)}`}
+                      style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
+                    >
+                      <option value="paid">Paid</option>
+                      <option value="unpaid">Unpaid</option>
+                      <option value="overdue">Overdue</option>
+                    </select>
                   </div>
                 </div>
                 
